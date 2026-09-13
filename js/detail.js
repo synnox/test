@@ -18,6 +18,11 @@ if (!item) {
 
 function renderDetail(item) {
   document.title = `${item.title} — Sn Streaming`;
+  const h = getHistory()[item.id];
+  const hasProgress = h && h.dur > 0 && h.cur > 5 && h.cur < h.dur - 40;
+  const progressPct = hasProgress ? Math.round((h.cur / h.dur) * 100) : 0;
+  const progressLabel = hasProgress ? fmtTime(h.cur) : "";
+
   document.getElementById("detailContent").innerHTML = `
     <div class="detail-poster"><img src="${poster(item)}" alt="${item.title}"></div>
     <div class="detail-info">
@@ -25,10 +30,15 @@ function renderDetail(item) {
       <div class="meta">
         <span class="star">${starSVG()} ${item.rating.toFixed(1)}</span>
         <span>${item.year}</span>
-        <span class="pill">${item.type === "movie" ? "Film" : "Série"}</span>
-        ${item.type === "movie" ? `<span class="pill">${item.duration}</span>` : `<span class="pill">${item.seasons.length} saison${item.seasons.length > 1 ? "s" : ""}</span>`}
+        <span class="pill">Film</span>
+        <span class="pill">${item.duration}</span>
         <span class="pill">HD • VF</span>
       </div>
+      ${hasProgress ? `
+      <div class="detail-progress">
+        <div class="detail-progress-bar"><div class="detail-progress-fill" style="width:${progressPct}%"></div></div>
+        <span class="detail-progress-text">${progressPct}% vu — ${progressLabel}</span>
+      </div>` : ""}
       <p class="synopsis">${item.synopsis}</p>
       <div class="extra">
         <div><b>Genres :</b> ${item.genres.join(" • ")}</div>
@@ -36,7 +46,11 @@ function renderDetail(item) {
         <div><b>Avec :</b> ${item.cast.join(", ")}</div>
       </div>
       <div class="actions">
-        <a class="btn btn-primary" href="#playerWrap" onclick="playFirst(event)">${playSVG()} Regarder en HD</a>
+        ${hasProgress
+          ? `<a class="btn btn-primary" href="#playerWrap" onclick="playResume(event)">${playSVG()} Reprendre à ${progressLabel}</a>
+             <a class="btn btn-ghost" href="#playerWrap" onclick="playFirst(event)">${playSVG()} Recommencer</a>`
+          : `<a class="btn btn-primary" href="#playerWrap" onclick="playFirst(event)">${playSVG()} Regarder en HD</a>`
+        }
         <button class="btn btn-ghost" onclick="shareItem()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
           Partager
@@ -47,11 +61,13 @@ function renderDetail(item) {
 
 function playFirst(e) {
   if (e) e.preventDefault();
-  if (item.type === "series") {
-    playEpisode(item.seasons[0].episodes[0], item.seasons[0].number);
-  } else {
-    play(item.source, `${item.title} — Film complet`);
-  }
+  saveProgress(item.id, 0, 0);
+  play(item.source, `${item.title} — Film complet`);
+}
+
+function playResume(e) {
+  if (e) e.preventDefault();
+  play(item.source, `${item.title} — Film complet`);
 }
 
 function play(url, label) {
@@ -62,62 +78,13 @@ function play(url, label) {
   video.src = url;
   video.play().catch(() => {});
   wrap.scrollIntoView({ behavior: "smooth", block: "start" });
-  saveProgress(item.id, 0, 0);
+  if (!getHistory()[item.id]) saveProgress(item.id, 0, 0);
 }
 
 function shareItem() {
   const url = location.href;
   if (navigator.share) navigator.share({ title: item.title, url }).catch(() => {});
   else { navigator.clipboard.writeText(url); toast("Lien copié dans le presse-papiers !"); }
-}
-
-/* ------- séries : saisons + épisodes ------- */
-function renderEpisodes() {
-  const section = document.getElementById("episodesSection");
-  if (item.type !== "series") return;
-  section.style.display = "";
-
-  const tabs = item.seasons.map((s, i) =>
-    `<button class="chip ${i === 0 ? "active" : ""}" data-season="${s.number}">Saison ${s.number}</button>`).join("");
-
-  section.innerHTML = `
-    <div class="section-head"><h2>Épisodes</h2></div>
-    <div class="season-tabs" id="seasonTabs">${tabs}</div>
-    <div class="episode-list" id="episodeList"></div>`;
-
-  renderSeason(item.seasons[0].number);
-
-  section.querySelectorAll("#seasonTabs .chip").forEach(c => {
-    c.addEventListener("click", () => {
-      section.querySelectorAll("#seasonTabs .chip").forEach(x => x.classList.remove("active"));
-      c.classList.add("active");
-      renderSeason(Number(c.dataset.season));
-    });
-  });
-}
-
-function renderSeason(seasonNum) {
-  const season = item.seasons.find(s => s.number === seasonNum);
-  const list = document.getElementById("episodeList");
-  list.innerHTML = season.episodes.map(ep => `
-    <div class="episode-item" data-src="${ep.source}" data-season="${seasonNum}" data-ep="${ep.number}">
-      <div class="ep-num">${ep.number}</div>
-      <div class="ep-info">
-        <h4>Épisode ${ep.number} — ${ep.title}</h4>
-        <span>${ep.duration} • HD</span>
-      </div>
-      <div class="ep-play">${playSVG()}</div>
-    </div>`).join("");
-
-  list.querySelectorAll(".episode-item").forEach(el => {
-    el.addEventListener("click", () => {
-      list.querySelectorAll(".episode-item").forEach(x => x.classList.remove("active"));
-      el.classList.add("active");
-      const src = el.dataset.src;
-      const label = `${item.title} — S${el.dataset.season} E${el.dataset.ep}`;
-      play(src, label);
-    });
-  });
 }
 
 /* recherche sur la page détail */
@@ -131,9 +98,7 @@ searchInput.addEventListener("input", () => {
   }, 500);
 });
 
-if (item) renderEpisodes();
-
-/* ------- tracking de lecture : sauvegarde position + auto-suppression à -40s ------- */
+/* ------- tracking de lecture ------- */
 (function () {
   if (!item) return;
   const video = document.getElementById("player");
@@ -150,13 +115,14 @@ if (item) renderEpisodes();
   });
 
   video.addEventListener("timeupdate", () => {
+    if (video.duration && video.currentTime >= video.duration - 40) {
+      removeProgress(item.id);
+      toast("Film terminé — retiré de la liste");
+      return;
+    }
     if (saveTimer) return;
     saveTimer = setTimeout(() => {
-      saveProgress(item.id, video.currentTime, video.duration);
-      if (video.duration && video.currentTime >= video.duration - 40) {
-        removeProgress(item.id);
-        toast("Film terminé — retiré de la liste");
-      }
+      updateProgress(item.id, video.currentTime, video.duration);
       saveTimer = null;
     }, 4000);
   });

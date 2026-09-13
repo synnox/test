@@ -66,7 +66,6 @@ function renderContinue() {
 function applyFilters() {
   let items = [...CATALOG];
   if (currentFilter === "Films") items = items.filter(i => i.type === "movie");
-  else if (currentFilter === "Séries") items = items.filter(i => i.type === "series");
   else if (currentFilter !== "Tous") items = items.filter(i => i.genres.includes(currentFilter));
   if (query) {
     const q = query.toLowerCase();
