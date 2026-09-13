@@ -36,7 +36,12 @@ CE QU'IL RESTE A FAIRE (si demande)
 - Page "Mes favoris" (localStorage)
 - Player: bouton retour arriere/avance 10s
 - Lazy loading des images pour perf
-- Deployer sur GitHub Pages ou Netlify
+
+DEPLOIEMENT GITHUB PAGES (https://synnox.github.io/test/)
+- Le site en ligne est fonctionnel (verifie le 2026-09-13) : memes fichiers que le local
+- Si page vide: c'est le cache navigateur -> Ctrl+F5, ou re-push apres le cache-buster ?v=20260913 ajoute
+- Video: CDN vida-loka bloque si Referer present -> meta no-referrer + referrerpolicy="no-referrer" sur <video> (deja en place)
+- Les liens ?ff=... de vida-loka sont horodates: s'ils expirent, 403 -> prendre un nouveau lien
 
 STACK
 - HTML/CSS/JS vanilla, zero dependance, zero build
