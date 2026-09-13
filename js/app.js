@@ -41,7 +41,7 @@ function posterSVG(item) {
 }
 
 function starSVG() {
-  return '<svg viewBox="0 0 24 24" width="14" height="14" fill="#f5c518"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z"/></svg>';
+  return '<svg viewBox="0 0 24 24" width="14" height="14" fill="#1e90ff"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z"/></svg>';
 }
 
 /* vraie image si fournie, sinon poster SVG généré */
