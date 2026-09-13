@@ -74,6 +74,19 @@ function infoSVG() {
   });
 })();
 
+/* theme toggle (bleu & noir <=> bleu & blanc) */
+(function () {
+  const btn = document.getElementById("themeToggle");
+  if (!btn) return;
+  const saved = localStorage.getItem("sn_theme");
+  if (saved === "light") document.documentElement.setAttribute("data-theme", "light");
+  btn.addEventListener("click", () => {
+    const isLight = document.documentElement.getAttribute("data-theme") === "light";
+    document.documentElement.setAttribute("data-theme", isLight ? "" : "light");
+    localStorage.setItem("sn_theme", isLight ? "" : "light");
+  });
+})();
+
 function itemJSON(id) {
   return CATALOG.find(i => i.id === Number(id));
 }
@@ -183,7 +196,6 @@ function updateURL(q, filter) {
 document.addEventListener("click", (e) => {
   const card = e.target.closest(".card");
   if (card) {
-    saveProgress(card.dataset.id);
     location.href = `movie.html?id=${card.dataset.id}`;
   }
 });

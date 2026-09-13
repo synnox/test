@@ -1,4 +1,5 @@
 :root {
+  /* --- thème Bleu & Noir (défaut) --- */
   --bg: #080c12;
   --bg-soft: #0d131c;
   --bg-card: #111923;
@@ -14,6 +15,23 @@
   --shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
   --radius: 16px;
   --font: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+/* --- thème Bleu & Blanc --- */
+[data-theme="light"] {
+  --bg: #eef4ff;
+  --bg-soft: #dbe8f8;
+  --bg-card: #ffffff;
+  --bg-hover: #e8f1ff;
+  --border: rgba(30, 144, 255, 0.18);
+  --border-strong: rgba(30, 144, 255, 0.28);
+  --text: #081220;
+  --muted: #4a6b8a;
+  --accent: #0066cc;
+  --accent2: #1e90ff;
+  --gold: #004080;
+  --grad: linear-gradient(135deg, #0066cc, #1e90ff);
+  --shadow: 0 24px 60px rgba(30, 144, 255, 0.12);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1121,4 +1139,36 @@ footer a { color: inherit; }
   font-size: 13px;
   font-weight: 600;
   color: var(--muted);
+}
+
+/* ================= THEME TOGGLE ================= */
+.theme-toggle {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, border-color 0.2s;
+  margin-left: 8px;
+}
+.theme-toggle:hover { background: var(--bg-hover); border-color: var(--accent); }
+.theme-toggle svg {
+  width: 22px;
+  height: 22px;
+  stroke: var(--text);
+  transition: opacity 0.25s, transform 0.25s;
+  position: absolute;
+}
+.theme-icon-dark { opacity: 1; transform: rotate(0deg) scale(1); }
+.theme-icon-light { opacity: 0; transform: rotate(-90deg) scale(0.7); }
+[data-theme="light"] .theme-icon-dark { opacity: 0; transform: rotate(90deg) scale(0.7); }
+[data-theme="light"] .theme-icon-light { opacity: 1; transform: rotate(0deg) scale(1); }
+
+@media (max-width: 900px) {
+  .theme-toggle { margin-left: 0; order: 1; }
 }

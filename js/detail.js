@@ -59,17 +59,6 @@ function renderDetail(item) {
     </div>`;
 }
 
-function playFirst(e) {
-  if (e) e.preventDefault();
-  saveProgress(item.id, 0, 0);
-  play(item.source, `${item.title} — Film complet`);
-}
-
-function playResume(e) {
-  if (e) e.preventDefault();
-  play(item.source, `${item.title} — Film complet`);
-}
-
 function play(url, label) {
   const wrap = document.getElementById("playerWrap");
   const video = document.getElementById("player");
@@ -78,7 +67,20 @@ function play(url, label) {
   video.src = url;
   video.play().catch(() => {});
   wrap.scrollIntoView({ behavior: "smooth", block: "start" });
-  if (!getHistory()[item.id]) saveProgress(item.id, 0, 0);
+  // NE PAS réinitialiser la position - la reprise se fait dans loadedmetadata
+}
+
+function playFirst(e) {
+  if (e) e.preventDefault();
+  // Recommencer explicitement : on remet à 0
+  saveProgress(item.id, 0, 0);
+  play(item.source, `${item.title} — Film complet`);
+}
+
+function playResume(e) {
+  if (e) e.preventDefault();
+  // Reprendre : on ne touche pas à l'historique, le loadedmetadata va restaurer
+  play(item.source, `${item.title} — Film complet`);
 }
 
 function shareItem() {
