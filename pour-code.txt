@@ -15,9 +15,11 @@ C:\Users\sn\Desktop\sn-streaming\
     └── detail.js       (page detail: fiche, lecteur video, episodes si serie)
 
 ETAT ACTUEL
-- 7 films dans le catalogue (pas de series)
+- 19 films dans le catalogue (pas de series)
 - Affiches: vraies images TMDB (media.themoviedb.org/t/p/w500/)
 - Videos: liens vida-loka.store dans data.js champ "source"
+- 12 films ajoutes (ids 8 a 19) ont encore source: "" -> l'utilisateur colle ses liens dans data.js
+- Correctif GitHub Pages: meta name="referrer" content="no-referrer" dans index.html et movie.html + referrerpolicy sur la balise video (sinon 403 des CDN)
 - La recherche, filtres (Tous/Films/SF/Action/Drame), et continue watching fonctionnent
 - Le lecteur video marche sur movie.html?id=X
 - Historique de lecture sauvegarde dans localStorage (cle "sn_history")
