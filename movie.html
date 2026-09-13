@@ -20,6 +20,7 @@
       <a href="index.html?filter=Films">Films</a>
       <a href="index.html?filter=Séries">Séries</a>
     </div>
+    <div class="burger" id="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></div>
     <div class="search-box">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       <input type="text" id="searchInput" placeholder="Rechercher un film, une série…" autocomplete="off">
@@ -33,10 +34,57 @@
   </div>
 
   <section class="player-wrap" id="playerWrap" style="display:none;">
+    <div class="player-shell" id="playerShell">
+      <video id="player" autoplay playsinline referrerpolicy="no-referrer"></video>
+      <div class="player-cue" id="playerCue">
+        <button class="cue-btn" id="cuePlay" aria-label="Lecture / pause">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="cue-spin" id="cueSpin"></div>
+        <div class="cue-msg" id="cueMsg"></div>
+      </div>
+      <div class="p-controls" id="pControls">
+        <div class="p-seek">
+          <input type="range" id="pSeek" min="0" max="1000" value="0" step="1" aria-label="Position de lecture">
+        </div>
+        <div class="p-row">
+          <div class="p-left">
+            <button class="p-btn" id="pPlay" aria-label="Lecture / pause">
+              <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <button class="p-btn p-ic" id="pBack" aria-label="Reculer de 10 secondes">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l3-3 3 3"/><path d="M6 6v8a4 4 0 0 0 4 4h1"/><path d="M14 6h3a4 4 0 0 1 4 4v2"/></svg>
+            </button>
+            <button class="p-btn p-ic" id="pFwd" aria-label="Avancer de 10 secondes">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 9l-3-3-3 3"/><path d="M18 6v8a4 4 0 0 1-4 4h-1"/><path d="M10 6H7a4 4 0 0 0-4 4v2"/></svg>
+            </button>
+            <span class="p-time"><b id="pCur">0:00</b><span class="p-sep">/</span><span id="pDur">0:00</span></span>
+          </div>
+          <div class="p-right">
+            <div class="p-vol">
+              <button class="p-btn" id="pMute" aria-label="Couper le son">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
+              </button>
+              <input type="range" id="pVol" min="0" max="100" value="100" aria-label="Volume">
+            </div>
+            <select class="p-rate" id="pRate" aria-label="Vitesse de lecture">
+              <option value="0.5">0.5×</option>
+              <option value="0.75">0.75×</option>
+              <option value="1" selected>1×</option>
+              <option value="1.25">1.25×</option>
+              <option value="1.5">1.5×</option>
+              <option value="2">2×</option>
+            </select>
+            <button class="p-btn p-ic" id="pFull" aria-label="Plein écran">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="player-bar">
       <div class="now"><span class="live"></span><span id="nowPlaying">Lecture…</span></div>
     </div>
-    <video id="player" controls autoplay referrerpolicy="no-referrer"></video>
   </section>
 
   <section class="episodes-section" id="episodesSection" style="display:none;"></section>
@@ -57,6 +105,7 @@
 
   <script src="js/data.js?v=20260913"></script>
   <script src="js/app.js?v=20260913"></script>
+  <script src="js/player.js?v=20260913"></script>
   <script src="js/detail.js?v=20260913"></script>
 </body>
 </html>

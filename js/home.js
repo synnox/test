@@ -9,33 +9,41 @@ function heroItem() {
 }
 
 function renderHero(item) {
+  const bg = document.getElementById("heroBg");
+  if (bg && item.poster) bg.style.setProperty("--img", `url("${item.poster}")`);
   const hero = document.getElementById("heroContent");
   hero.innerHTML = `
-    <span class="hero-tag"><span class="pulse"></span> À l'affiche sur Sn Streaming</span>
-    <h1>${item.title}</h1>
-    <div class="meta">
-      <span class="star">${starSVG()} ${item.rating.toFixed(1)}</span>
-      <span>${item.year}</span>
-      <span class="pill">${item.type === "movie" ? "Film" : "Série"}</span>
-      ${item.type === "movie"
-        ? `<span class="pill">${item.duration}</span>`
-        : `<span class="pill">${item.seasons.length} saison${item.seasons.length > 1 ? "s" : ""}</span>`}
-      <span class="pill">HD</span>
+    <div class="hero-box">
+      <span class="hero-tag"><span class="pulse"></span> À l'affiche</span>
+      <h1>${item.title}</h1>
+      <div class="meta">
+        <span class="star">${starSVG()} ${item.rating.toFixed(1)}</span>
+        <span>${item.year}</span>
+        <span class="pill">${item.type === "movie" ? "Film" : "Série"}</span>
+        ${item.type === "movie"
+          ? `<span class="pill">${item.duration}</span>`
+          : `<span class="pill">${item.seasons.length} saison${item.seasons.length > 1 ? "s" : ""}</span>`}
+        <span class="pill">HD • VF</span>
+      </div>
+      <p class="desc">${item.synopsis}</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="movie.html?id=${item.id}">${playSVG()} Regarder en HD</a>
+        <a class="btn btn-ghost" href="movie.html?id=${item.id}">${infoSVG()} Détails</a>
+      </div>
     </div>
-    <p class="desc">${item.synopsis}</p>
-    <div class="hero-actions">
-      <a class="btn btn-primary" href="movie.html?id=${item.id}">${playSVG()} Regarder en HD</a>
-      <a class="btn btn-ghost" href="movie.html?id=${item.id}">Détails ↑</a>
-    </div>`;
+    <div class="hero-poster"><img src="${poster(item)}" alt="${item.title}"></div>`;
 }
 
 function renderGenres() {
   const row = document.getElementById("genreRow");
-  const cycle = ["01", "02", "03", "04", "05", "06", "07", "08"];
-  row.innerHTML = genres.map((g, i) => `
-    <div class="genre-card" data-genre="${g}" style="background:linear-gradient(135deg, ${posterGradient(i * 3)[0]}, #0f1524)">
-      <span>${g} <small style="font-size:11px;opacity:.6">#${cycle[i % cycle.length]}</small></span>
-    </div>`).join("");
+  const emo = { "Action": "🎬", "Science-Fiction": "🚀", "Drame": "🎭", "Comédie": "😂", "Policier": "🕵️‍♂️", "Histoire": "🏛️", "Fantaisie": "✨", "Horreur": "🎃", "Thriller": "🔪", "Romance": "❤️", "Animation": "🐭" };
+  row.innerHTML = genres.map((g, i) => {
+    const [c1, c2] = posterGradient(i * 7 + 2);
+    return `
+    <div class="genre-card" data-genre="${g}" style="background:linear-gradient(135deg, ${c1}, ${c2})">
+      <span>${emo[g] || "🎞️"} ${g}</span>
+    </div>`;
+  }).join("");
 }
 
 function renderContinue() {

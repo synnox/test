@@ -53,6 +53,27 @@ function playSVG() {
   return '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
 }
 
+function infoSVG() {
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
+}
+
+/* menu burger (mobile) */
+(function () {
+  const burger = document.getElementById("burger");
+  const links = document.querySelector(".nav-links");
+  if (!burger || !links) return;
+  burger.addEventListener("click", () => {
+    const open = links.classList.toggle("open");
+    burger.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+  links.addEventListener("click", (e) => {
+    if (e.target.closest("a")) {
+      links.classList.remove("open");
+      burger.setAttribute("aria-expanded", "false");
+    }
+  });
+})();
+
 function itemJSON(id) {
   return CATALOG.find(i => i.id === Number(id));
 }
