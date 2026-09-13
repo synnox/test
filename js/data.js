@@ -181,8 +181,7 @@ const CATALOG = [
     director: "Christopher Nolan",
     cast: ["Christian Bale", "Heath Ledger", "Aaron Eckhart"],
     poster: "https://media.themoviedb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
-    source: "
-https://cdn78.vida-loka.store/series/VF/Batman-The-Dark-Knight-Lechevalier-Noir/S01/Batman-The-Dark-Knight-Le-Chevalier-noir-S01-E01.mp4?ff=1789333431.WUXxVHFEiKq7p5qszHeS0gHy"
+    source: "https://cdn78.vida-loka.store/series/VF/Batman-The-Dark-Knight-Lechevalier-Noir/S01/Batman-The-Dark-Knight-Le-Chevalier-noir-S01-E01.mp4?ff=1789333431.WUXxVHFEiKq7p5qszHeS0gHy"
   },
   {
     id: 14,
@@ -221,9 +220,9 @@ https://cdn78.vida-loka.store/series/VF/Batman-The-Dark-Knight-Lechevalier-Noir/
     genres: ["Action", "Drame"],
     duration: "2h 30min",
     synopsis: "Quatre ans se sont écoulés, Peter, désormais adulte, vit seul, s'est volontairement effacé de la vie et des souvenirs de ses proches. Luttant contre le crime dans un New York qui ne le reconnaît plus, il se consacre entièrement à la protection de la ville - un Spider-Man à plein temps - mais à mesure que les responsabilités s'intensifient, la pression provoque une transformation physique surprenante qui menace son existence, tandis qu'une étrange nouvelle vague de crimes donne naissance à l'une des menaces les plus redoutables qu'il ait jamais affrontées.",
-    director: "Quentin Tarantino",
-    cast: ["John Travolta", "Uma Thurman", "Samuel L. Jackson"],
-    poster: "https://image.tmdb.org/t/p/w300/hdYqHWsKvrzfbdDNrKdrCMWJ0H0.jpg",
+    director: "Destin Daniel Cretton",
+    cast: ["Tom Holland", "Zendaya", "Jon Bernthal"],
+    poster: "https://media.themoviedb.org/t/p/w500/hdYqHWsKvrzfbdDNrKdrCMWJ0H0.jpg",
     source: "https://cdn78.vida-loka.store/movies/Spider-Man-Brand-New-Day-2026-Swiftflow.mp4?ff=1789333700.SRBxD6uGds03LYPpS3ZTcIcV"
   },
   {
