@@ -49,8 +49,15 @@ function renderGenres() {
 function renderContinue() {
   const section = document.getElementById("continueSection");
   const history = getHistory();
-  const ids = Object.keys(history).map(Number).filter(id => CATALOG.some(i => i.id === id))
-    .sort((a, b) => history[b] - history[a]);
+  const ids = Object.keys(history)
+    .map(Number)
+    .filter(id => {
+      if (!CATALOG.some(i => i.id === id)) return false;
+      const h = history[id];
+      if (h && h.dur > 0 && h.cur >= h.dur - 40) return false;
+      return true;
+    })
+    .sort((a, b) => history[b].ts - history[a].ts);
   if (!ids.length) { section.style.display = "none"; return; }
   section.style.display = "";
   renderGrid(ids.map(id => CATALOG.find(i => i.id === id)), "continueRow");

@@ -62,7 +62,7 @@ function play(url, label) {
   video.src = url;
   video.play().catch(() => {});
   wrap.scrollIntoView({ behavior: "smooth", block: "start" });
-  saveProgress(item.id);
+  saveProgress(item.id, 0, 0);
 }
 
 function shareItem() {
@@ -132,3 +132,37 @@ searchInput.addEventListener("input", () => {
 });
 
 if (item) renderEpisodes();
+
+/* ------- tracking de lecture : sauvegarde position + auto-suppression à -40s ------- */
+(function () {
+  if (!item) return;
+  const video = document.getElementById("player");
+  if (!video) return;
+  let saveTimer = null;
+
+  video.addEventListener("loadedmetadata", () => {
+    updateProgress(item.id, video.currentTime, video.duration);
+    const h = getHistory()[item.id];
+    if (h && h.cur > 5 && h.cur < h.dur - 40) {
+      video.currentTime = h.cur;
+      toast("Reprise à " + fmtTime(h.cur));
+    }
+  });
+
+  video.addEventListener("timeupdate", () => {
+    if (saveTimer) return;
+    saveTimer = setTimeout(() => {
+      saveProgress(item.id, video.currentTime, video.duration);
+      if (video.duration && video.currentTime >= video.duration - 40) {
+        removeProgress(item.id);
+        toast("Film terminé — retiré de la liste");
+      }
+      saveTimer = null;
+    }, 4000);
+  });
+
+  video.addEventListener("ended", () => {
+    removeProgress(item.id);
+    toast("Film terminé !");
+  });
+})();

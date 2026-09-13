@@ -81,6 +81,8 @@ function itemJSON(id) {
 function cardHTML(item) {
   const star = `<span class="star">${starSVG()} ${item.rating.toFixed(1)}</span>`;
   const meta = item.type === "movie" ? item.duration : `${item.seasons.length}S`;
+  const h = getHistory()[item.id];
+  const pct = h && h.dur > 0 ? Math.min(100, Math.round((h.cur / h.dur) * 100)) : 0;
   return `
     <div class="card" data-id="${item.id}" data-title="${item.title}" data-genres="${item.genres.join(",")}" data-type="${item.type}">
       <div class="card-poster">
@@ -88,6 +90,7 @@ function cardHTML(item) {
         <img src="${poster(item)}" alt="${item.title}" loading="lazy">
         <span class="runtime">${meta}</span>
         <div class="play-overlay"><span>${playSVG()}</span></div>
+        ${pct > 0 ? `<div class="card-progress"><div class="card-progress-fill" style="width:${pct}%"></div></div>` : ""}
       </div>
       <div class="card-body">
         <h3>${item.title}</h3>
@@ -118,15 +121,49 @@ function toast(msg) {
   t._timer = setTimeout(() => t.classList.remove("show"), 2400);
 }
 
-function saveProgress(id, type) {
-  let list = {};
-  try { list = JSON.parse(localStorage.getItem("sn_history") || "{}"); } catch (e) {}
-  list[id] = Date.now();
+function saveProgress(id, cur, dur) {
+  const list = getHistory();
+  const now = Date.now();
+  if (list[id]) {
+    list[id].ts = now;
+    if (cur !== undefined) list[id].cur = cur;
+    if (dur !== undefined) list[id].dur = dur;
+  } else {
+    list[id] = { ts: now, cur: cur || 0, dur: dur || 0 };
+  }
   localStorage.setItem("sn_history", JSON.stringify(list));
+}
+
+function updateProgress(id, cur, dur) {
+  const list = getHistory();
+  if (!list[id]) return;
+  list[id].cur = cur;
+  list[id].dur = dur;
+  localStorage.setItem("sn_history", JSON.stringify(list));
+}
+
+function removeProgress(id) {
+  const list = getHistory();
+  delete list[id];
+  localStorage.setItem("sn_history", JSON.stringify(list));
+}
+
+function isNearEnd(id) {
+  const h = getHistory()[id];
+  if (!h || !h.dur) return false;
+  return h.cur >= h.dur - 40;
 }
 
 function getHistory() {
   try { return JSON.parse(localStorage.getItem("sn_history") || "{}"); } catch (e) { return {}; }
+}
+
+function fmtTime(s) {
+  if (!isFinite(s) || s < 0) s = 0;
+  s = Math.floor(s);
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return m + ":" + (r < 10 ? "0" : "") + r;
 }
 
 function parseQuery() {
