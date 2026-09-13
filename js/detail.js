@@ -106,15 +106,24 @@ searchInput.addEventListener("input", () => {
   const video = document.getElementById("player");
   if (!video) return;
   let saveTimer = null;
+  let hasResumed = false;
 
   video.addEventListener("loadedmetadata", () => {
     updateProgress(item.id, video.currentTime, video.duration);
+  });
+
+  function tryResume() {
+    if (hasResumed) return;
     const h = getHistory()[item.id];
     if (h && h.cur > 5 && h.cur < h.dur - 40) {
       video.currentTime = h.cur;
       toast("Reprise à " + fmtTime(h.cur));
+      hasResumed = true;
     }
-  });
+  }
+
+  video.addEventListener("canplay", tryResume);
+  video.addEventListener("playing", tryResume);
 
   video.addEventListener("timeupdate", () => {
     if (video.duration && video.currentTime >= video.duration - 40) {
