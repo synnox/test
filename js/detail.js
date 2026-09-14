@@ -51,6 +51,10 @@ function renderDetail(item) {
              <a class="btn btn-ghost" href="#playerWrap" onclick="playFirst(event)">${playSVG()} Recommencer</a>`
           : `<a class="btn btn-primary" href="#playerWrap" onclick="playFirst(event)">${playSVG()} Regarder en HD</a>`
         }
+        <button class="btn btn-ghost btn-fav-detail ${isFavorite(item.id) ? 'active' : ''}" id="btnFavDetail">
+          <svg viewBox="0 0 24 24" fill="${isFavorite(item.id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          ${isFavorite(item.id) ? 'Favori' : 'Favori'}
+        </button>
         <button class="btn btn-ghost" onclick="shareItem()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
           Partager
@@ -131,8 +135,10 @@ searchInput.addEventListener("input", () => {
 
   video.addEventListener("timeupdate", () => {
     if (video.duration && video.currentTime >= video.duration - 40) {
-      removeProgress(item.id);
-      toast("Film terminé — retiré de la liste");
+      if (!isFinished(item.id)) {
+        finishProgress(item.id);
+        toast("Film terminé — retrouvé dans l'historique");
+      }
       return;
     }
     // tant que la reprise n'est pas appliquée, ignorer currentTime ≈ 0
@@ -145,7 +151,34 @@ searchInput.addEventListener("input", () => {
   });
 
   video.addEventListener("ended", () => {
-    removeProgress(item.id);
-    toast("Film terminé !");
+    if (!isFinished(item.id)) {
+      finishProgress(item.id);
+      toast("Film terminé !");
+    }
   });
+})();
+
+/* ---------- bouton favori ---------- */
+(function () {
+  if (!item) return;
+  const btn = document.getElementById("btnFavDetail");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    const added = toggleFavorite(item.id);
+    btn.classList.toggle("active", added);
+    btn.querySelector("svg").setAttribute("fill", added ? "currentColor" : "none");
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="${added ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> ${added ? 'Favori' : 'Favori'}`;
+  });
+})();
+
+/* ---------- films similaires ---------- */
+(function () {
+  if (!item) return;
+  const similar = getSimilarFilms(item.id).slice(0, 10);
+  if (!similar.length) return;
+  const sec = document.getElementById("similarSection");
+  if (sec) {
+    sec.style.display = "";
+    renderGrid(similar, "similarGrid", "");
+  }
 })();

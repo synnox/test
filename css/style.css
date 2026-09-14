@@ -795,6 +795,68 @@ footer a { color: inherit; }
   .acct-forms { flex-direction:column; }
 }
 
+/* ================= CARTES : bouton favori ================= */
+.card-fav {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s, background 0.2s, transform 0.2s, color 0.2s;
+  z-index: 3;
+}
+.card:hover .card-fav { opacity: 1; }
+.card-fav:hover { transform: scale(1.12); color: #ff6b7a; background: rgba(0, 0, 0, 0.8); }
+.card-fav.active { opacity: 1; color: #ff6b7a; border-color: rgba(255, 107, 122, 0.5); }
+.card-fav svg { width: 18px; height: 18px; }
+.btn-fav-detail.active { color: #ff6b7a; border-color: rgba(255, 107, 122, 0.5); }
+
+/* ================= RECHERCHE AVANCÉE ================= */
+.adv-search {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 16px 0 22px;
+  padding: 14px 16px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.adv-search input,
+.adv-search select {
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 13.5px;
+}
+.adv-search input:focus,
+.adv-search select:focus { outline: none; border-color: var(--accent); }
+.adv-search input { width: 110px; }
+
+/* ================= STATISTIQUES ================= */
+.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+.stat {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 16px;
+  text-align: center;
+}
+.stat b { display: block; font-size: 24px; font-weight: 900; color: var(--accent); }
+.stat span { display: block; color: var(--muted); font-size: 13px; margin-top: 4px; }
+
 /* ================= TOAST ================= */
 #toast {
   position: fixed;

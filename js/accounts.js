@@ -71,14 +71,16 @@ var Accounts = (function () {
 
   function logout() { delCookie(SESSION_COOKIE); }
 
-  /* supprime le compte + sa watchlist */
+  /* supprime le compte + sa watchlist + ses favoris */
   function removeAccount() {
     const u = currentUser();
     if (!u) return;
     const users = getUsers();
     delete users[u.toLowerCase()];
     saveUsers(users);
-    delCookie("sn_history_" + hash("user:" + u));
+    const h = hash("user:" + u);
+    delCookie("sn_history_" + h);
+    delCookie("sn_fav_" + h);
     delCookie(SESSION_COOKIE);
   }
 

@@ -6,7 +6,7 @@
   <meta name="referrer" content="no-referrer">
   <meta name="description" content="Sn Streaming — Films et séries en streaming HD gratuit.">
   <title>Sn Streaming — Films & Séries en HD</title>
-  <link rel="stylesheet" href="css/style.css?v=20260917">
+  <link rel="stylesheet" href="css/style.css?v=20260919">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
 </head>
 <body>
@@ -19,6 +19,8 @@
     <div class="nav-links">
       <a href="#" class="active" data-filter="Tous">Accueil</a>
       <a href="#" data-filter="Films">Films</a>
+      <a href="favoris.html">Ma Liste</a>
+      <a href="historique.html">Historique</a>
       <a href="parametres.html">Paramètres</a>
     </div>
     <button class="theme-toggle" id="themeToggle" aria-label="Changer de thème" title="Basculer thème">
@@ -45,6 +47,11 @@
       <div class="grid" id="continueRow"></div>
     </section>
 
+    <section class="section" id="topSection" style="display:none;">
+      <div class="section-head"><h2>🏆 Ton Top 10</h2></div>
+      <div class="grid" id="topGrid"></div>
+    </section>
+
     <section class="section">
       <div class="section-head"><h2>Parcourir par genre</h2></div>
       <div class="genre-row" id="genreRow"></div>
@@ -60,6 +67,18 @@
           <button class="chip" data-filter="Science-Fiction">SF</button>
           <button class="chip" data-filter="Drame">Drame</button>
         </div>
+      </div>
+      <div class="adv-search" id="advSearch">
+        <input type="number" id="advYearMin" placeholder="Année min" min="1900" max="2030" title="Année minimum">
+        <input type="number" id="advYearMax" placeholder="Année max" min="1900" max="2030" title="Année maximum">
+        <select id="advRating" title="Note minimum">
+          <option value="0">Note : toutes</option>
+          <option value="6">6+</option>
+          <option value="7">7+</option>
+          <option value="8">8+</option>
+          <option value="8.5">8.5+</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" id="advReset" type="button">Réinitialiser</button>
       </div>
       <div class="grid" id="catalogGrid"></div>
     </section>
@@ -80,9 +99,9 @@
     <p class="footer-note">Contenus de démonstration &mdash; sources dans <span>js/data.js</span>.</p>
   </footer>
 
-  <script src="js/data.js?v=20260917"></script>
-  <script src="js/accounts.js?v=20260917"></script>
-  <script src="js/app.js?v=20260917"></script>
-  <script src="js/home.js?v=20260917"></script>
+  <script src="js/data.js?v=20260919"></script>
+  <script src="js/accounts.js?v=20260919"></script>
+  <script src="js/app.js?v=20260919"></script>
+  <script src="js/home.js?v=20260919"></script>
 </body>
 </html>

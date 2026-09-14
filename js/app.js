@@ -109,12 +109,16 @@ function cardHTML(item) {
   const meta = item.type === "movie" ? item.duration : `${item.seasons.length}S`;
   const h = getHistory()[item.id];
   const pct = h && h.dur > 0 ? Math.min(100, Math.round((h.cur / h.dur) * 100)) : 0;
+  const fav = isFavorite(item.id);
   return `
     <div class="card" data-id="${item.id}" data-title="${item.title}" data-genres="${item.genres.join(",")}" data-type="${item.type}">
       <div class="card-poster">
         <span class="type-badge ${item.type}">${item.type}</span>
         <img src="${poster(item)}" alt="${item.title}" loading="lazy">
         <span class="runtime">${meta}</span>
+        <button class="card-fav ${fav ? 'active' : ''}" data-fav="${item.id}" title="${fav ? 'Retirer des favoris' : 'Ajouter à Ma Liste'}">
+          <svg viewBox="0 0 24 24" fill="${fav ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
         <div class="play-overlay"><span>${playSVG()}</span></div>
         ${pct > 0 ? `<div class="card-progress"><div class="card-progress-fill" style="width:${pct}%"></div></div>` : ""}
       </div>
@@ -198,6 +202,25 @@ function removeProgress(id) {
   saveAllHistory(list);
 }
 
+/* marque un film comme terminé (reste dans l'historique, sort de la watchlist) */
+function finishProgress(id) {
+  const list = getHistory();
+  if (!list[id]) return;
+  list[id].fin = true;
+  list[id].cur = list[id].dur || 0;
+  list[id].ts = Date.now();
+  saveAllHistory(list);
+}
+
+/* un film est terminé s'il est marqué fini (ou presque terminé) */
+function isFinished(id) {
+  const h = getHistory()[id];
+  if (!h) return false;
+  if (h.fin) return true;
+  if (h.dur > 0 && h.cur >= h.dur - 40) return true;
+  return false;
+}
+
 function isNearEnd(id) {
   const h = getHistory()[id];
   if (!h || !h.dur) return false;
@@ -225,8 +248,136 @@ function updateURL(q, filter) {
   history.replaceState(null, "", qs ? "?" + qs : location.pathname);
 }
 
-/* global event delegation : une carte -> page détail */
+/* ============ FAVORIS (ma liste perso) ============ */
+function getFavoritesKey() {
+  const hk = Accounts.historyKey();
+  return hk === "sn_history" ? "sn_fav" : "sn_fav_" + hk.split("_").slice(2).join("_");
+}
+function getFavorites() {
+  try { return JSON.parse(Accounts.getCookie(getFavoritesKey()) || "[]"); } catch (e) { return []; }
+}
+function saveFavorites(arr) {
+  const d = new Date(); d.setTime(d.getTime() + 365 * 864e5);
+  document.cookie = getFavoritesKey() + "=" + encodeURIComponent(JSON.stringify(arr)) + "; expires=" + d.toUTCString() + "; path=/; SameSite=Lax";
+}
+function isFavorite(id) { return getFavorites().includes(id); }
+function toggleFavorite(id) {
+  const fav = getFavorites();
+  const i = fav.indexOf(id);
+  if (i === -1) { fav.push(id); toast("Ajouté aux favoris"); }
+  else { fav.splice(i, 1); toast("Retiré des favoris"); }
+  saveFavorites(fav);
+  return i === -1;
+}
+function removeFavorite(id) {
+  saveFavorites(getFavorites().filter(f => f !== id));
+}
+
+/* films en cours (pas encore terminés) pour "Ma Liste" */
+function getUnfinishedFilms() {
+  const hist = getHistory();
+  return Object.keys(hist)
+    .map(Number)
+    .filter(id => {
+      if (!CATALOG.some(i => i.id === id)) return false;
+      return !isFinished(id);
+    })
+    .sort((a, b) => (hist[b].ts || 0) - (hist[a].ts || 0))
+    .map(id => CATALOG.find(i => i.id === id));
+}
+
+/* ============ FILM DU JOUR (seed = date) ============ */
+function getDailyPick() {
+  const d = new Date();
+  const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  let h = seed;
+  for (let i = 0; i < 8; i++) { h = ((h << 5) + h + (i * 31)) | 0; }
+  return CATALOG[Math.abs(h) % CATALOG.length];
+}
+
+/* ============ SURPRENDS-MOI ============ */
+function getRandomFilm() { return CATALOG[Math.floor(Math.random() * CATALOG.length)]; }
+
+/* ============ STATISTIQUES ============ */
+function getStats() {
+  const hist = getHistory();
+  const ids = Object.keys(hist).map(Number).filter(id => CATALOG.some(i => i.id === id));
+  let totalSec = 0, genreCount = {};
+  ids.forEach(id => {
+    const h = hist[id];
+    if (h && h.dur > 0) totalSec += Math.min(h.cur, h.dur);
+    const it = CATALOG.find(i => i.id === id);
+    if (it) it.genres.forEach(g => { genreCount[g] = (genreCount[g] || 0) + 1; });
+  });
+  const topGenre = Object.entries(genreCount).sort((a, b) => b[1] - a[1])[0];
+  const totalH = Math.floor(totalSec / 3600);
+  const totalM = Math.floor((totalSec % 3600) / 60);
+  return {
+    nbFilms: ids.length,
+    totalSec,
+    totalLabel: totalH > 0 ? totalH + "h " + totalM + "min" : totalM + " min",
+    topGenre: topGenre ? topGenre[0] : "—",
+    topGenreCount: topGenre ? topGenre[1] : 0,
+    genreCount
+  };
+}
+
+/* ============ TOP 10 PERSONNEL (par temps de visionnage) ============ */
+function getTopFilms() {
+  const hist = getHistory();
+  return Object.keys(hist).map(Number)
+    .map(id => ({ id, ...hist[id], item: CATALOG.find(i => i.id === id) }))
+    .filter(e => e.item && e.dur > 0)
+    .sort((a, b) => Math.min(b.cur, b.dur) - Math.min(a.cur, a.dur))
+    .slice(0, 10);
+}
+
+/* ============ HISTORIQUE COMPLET ============ */
+function getFullHistory() {
+  const hist = getHistory();
+  return Object.keys(hist).map(Number)
+    .map(id => ({ id, ...hist[id], item: CATALOG.find(i => i.id === id) }))
+    .filter(e => e.item)
+    .sort((a, b) => (b.ts || 0) - (a.ts || 0));
+}
+
+/* ============ FILMS SIMILAIRES ============ */
+function getSimilarFilms(id) {
+  const item = CATALOG.find(i => i.id === id);
+  if (!item) return [];
+  return CATALOG.filter(i => i.id !== id && i.genres.some(g => item.genres.includes(g)));
+}
+
+/* ============ RECHERCHE AVANCÉE ============ */
+function advancedSearch(q, genre, yearMin, yearMax, ratingMin) {
+  let items = [...CATALOG];
+  if (q) {
+    const ql = q.toLowerCase();
+    items = items.filter(i =>
+      i.title.toLowerCase().includes(ql) ||
+      i.director.toLowerCase().includes(ql) ||
+      i.cast.some(c => c.toLowerCase().includes(ql))
+    );
+  }
+  if (genre && genre !== "Tous") items = items.filter(i => i.genres.includes(genre));
+  if (yearMin) items = items.filter(i => i.year >= Number(yearMin));
+  if (yearMax) items = items.filter(i => i.year <= Number(yearMax));
+  if (ratingMin) items = items.filter(i => i.rating >= Number(ratingMin));
+  return items;
+}
+
+/* global event delegation : une carte -> page détail, un favori -> toggle */
 document.addEventListener("click", (e) => {
+  const favBtn = e.target.closest("[data-fav]");
+  if (favBtn) {
+    e.stopPropagation();
+    const id = Number(favBtn.dataset.fav);
+    const added = toggleFavorite(id);
+    favBtn.classList.toggle("active", added);
+    favBtn.querySelector("svg").setAttribute("fill", added ? "currentColor" : "none");
+    favBtn.title = added ? "Retirer des favoris" : "Ajouter à Ma Liste";
+    return;
+  }
   const card = e.target.closest(".card");
   if (card) {
     location.href = `movie.html?id=${card.dataset.id}`;

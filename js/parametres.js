@@ -96,22 +96,34 @@
     Accounts.updateNav();
     renderAccount();
     renderWatchlist();
+    renderStats();
     if (Accounts.isLoggedIn() && location.search.includes("login=1")) {
       history.replaceState(null, "", "parametres.html");
     }
   }
 
-  /* ---------- watchlist ---------- */
+  /* ---------- statistiques ---------- */
+  function renderStats() {
+    const box = document.getElementById("statsRow");
+    if (!box) return;
+    const s = getStats();
+    box.innerHTML = `
+      <div class="stat"><b>${s.nbFilms}</b><span>films vus</span></div>
+      <div class="stat"><b>${s.totalLabel}</b><span>temps de visionnage</span></div>
+      <div class="stat"><b>${s.topGenre}</b><span>genre favori (${s.topGenreCount})</span></div>`;
+  }
+
+  /* ---------- watchlist (films en cours, pas terminés) ---------- */
   function renderWatchlist() {
     const history = getHistory();
     const u = Accounts.currentUser();
     wlNote.textContent = u
-      ? "Ta liste — seuls les films en cours y figurent. Supprime un film sans attendre de le finir."
+      ? "Ta liste — films commencés et PAS terminés. Les films finis vont dans l'historique."
       : "Liste invité. Crée un compte pour avoir TON propre watchlist.";
 
     const ids = Object.keys(history)
       .map(Number)
-      .filter(id => CATALOG.some(i => i.id === id))
+      .filter(id => CATALOG.some(i => i.id === id) && !isFinished(id))
       .sort((a, b) => (history[b].ts || 0) - (history[a].ts || 0));
 
     if (!ids.length) {
@@ -146,10 +158,48 @@
         removeProgress(Number(btn.dataset.id));
         toast("Retiré de la watchlist");
         renderWatchlist();
+        renderStats();
+      });
+    });
+  }
+
+  /* ---------- favoris ---------- */
+  function renderFavorites() {
+    const box = document.getElementById("favList");
+    if (!box) return;
+    const favIds = getFavorites().filter(id => CATALOG.some(i => i.id === id));
+    const u = Accounts.currentUser();
+    if (!favIds.length) {
+      box.innerHTML = `
+        <div class="empty" style="width:100%">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <p>Aucun favori.</p>
+          <a class="btn btn-primary" style="margin-top:14px" href="index.html">Découvrir le catalogue</a>
+        </div>`;
+      return;
+    }
+    box.innerHTML = favIds.map(id => {
+      const it = CATALOG.find(i => i.id === id);
+      return `
+        <div class="wl-row">
+          <img class="wl-thumb" src="${poster(it)}" alt="">
+          <div class="wl-info">
+            <div class="wl-title"><a href="movie.html?id=${it.id}">${esc(it.title)}</a></div>
+          </div>
+          <button type="button" class="wl-del" data-fav="${id}" title="Retirer des favoris">✕</button>
+        </div>`;
+    }).join("");
+
+    box.querySelectorAll(".wl-del").forEach(btn => {
+      btn.addEventListener("click", () => {
+        removeFavorite(Number(btn.dataset.fav));
+        toast("Retiré des favoris");
+        renderFavorites();
       });
     });
   }
 
   renderAccount();
   renderWatchlist();
+  renderStats();
 })();

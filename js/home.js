@@ -8,13 +8,13 @@ function heroItem() {
   return CATALOG.find(i => i.featured) || CATALOG[0];
 }
 
-function renderHero(item) {
+function renderHero(item, tag) {
   const bg = document.getElementById("heroBg");
   if (bg && item.poster) bg.style.setProperty("--img", `url("${item.poster}")`);
   const hero = document.getElementById("heroContent");
   hero.innerHTML = `
     <div class="hero-box">
-      <span class="hero-tag"><span class="pulse"></span> À l'affiche</span>
+      <span class="hero-tag"><span class="pulse"></span> ${tag || "À l'affiche"}</span>
       <h1>${item.title}</h1>
       <div class="meta">
         <span class="star">${starSVG()} ${item.rating.toFixed(1)}</span>
@@ -29,9 +29,23 @@ function renderHero(item) {
       <div class="hero-actions">
         <a class="btn btn-primary" href="movie.html?id=${item.id}">${playSVG()} Regarder en HD</a>
         <a class="btn btn-ghost" href="movie.html?id=${item.id}">${infoSVG()} Détails</a>
+        <button class="btn btn-ghost" id="btnSurprise" title="Surprends-moi !">🎲 Surprends-moi</button>
       </div>
     </div>
     <div class="hero-poster"><img src="${poster(item)}" alt="${item.title}"></div>`;
+  const sb = document.getElementById("btnSurprise");
+  if (sb) sb.addEventListener("click", () => {
+    const r = getRandomFilm();
+    location.href = `movie.html?id=${r.id}`;
+  });
+}
+
+function renderTop() {
+  const section = document.getElementById("topSection");
+  const top = getTopFilms();
+  if (!top.length) { section.style.display = "none"; return; }
+  section.style.display = "";
+  renderGrid(top.map(e => e.item), "topGrid", "");
 }
 
 function renderGenres() {
@@ -48,32 +62,20 @@ function renderGenres() {
 
 function renderContinue() {
   const section = document.getElementById("continueSection");
-  const history = getHistory();
-  const ids = Object.keys(history)
-    .map(Number)
-    .filter(id => {
-      if (!CATALOG.some(i => i.id === id)) return false;
-      const h = history[id];
-      if (h && h.dur > 0 && h.cur >= h.dur - 40) return false;
-      return true;
-    })
-    .sort((a, b) => history[b].ts - history[a].ts);
-  if (!ids.length) { section.style.display = "none"; return; }
+  const films = getUnfinishedFilms();
+  if (!films.length) { section.style.display = "none"; return; }
   section.style.display = "";
-  renderGrid(ids.map(id => CATALOG.find(i => i.id === id)), "continueRow");
+  renderGrid(films, "continueRow");
 }
 
 function applyFilters() {
-  let items = [...CATALOG];
+  const yMin = document.getElementById("advYearMin") ? document.getElementById("advYearMin").value : "";
+  const yMax = document.getElementById("advYearMax") ? document.getElementById("advYearMax").value : "";
+  const rMin = document.getElementById("advRating") ? document.getElementById("advRating").value : "0";
+  const genre = (currentFilter === "Films" || currentFilter === "Tous") ? "Tous" : currentFilter;
+  let items = advancedSearch(query, genre, yMin || 0, yMax || 9999, rMin || 0);
   if (currentFilter === "Films") items = items.filter(i => i.type === "movie");
-  else if (currentFilter !== "Tous") items = items.filter(i => i.genres.includes(currentFilter));
   if (query) {
-    const q = query.toLowerCase();
-    items = items.filter(i =>
-      i.title.toLowerCase().includes(q) ||
-      i.genres.some(g => g.toLowerCase().includes(q)) ||
-      (i.cast || []).some(c => c.toLowerCase().includes(q))
-    );
     document.getElementById("catalogTitle").textContent = `Résultats pour « ${query} »`;
   } else {
     document.getElementById("catalogTitle").textContent = "Catalogue";
@@ -114,7 +116,24 @@ searchInput.addEventListener("input", () => {
   searchTimer = setTimeout(() => { query = searchInput.value.trim(); setFilter(currentFilter); }, 220);
 });
 
-renderHero(heroItem());
+/* advanced search listeners */
+["advYearMin", "advYearMax", "advRating"].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener("change", () => setFilter(currentFilter));
+});
+const advReset = document.getElementById("advReset");
+if (advReset) advReset.addEventListener("click", () => {
+  const yMin = document.getElementById("advYearMin");
+  const yMax = document.getElementById("advYearMax");
+  const rMin = document.getElementById("advRating");
+  if (yMin) yMin.value = "";
+  if (yMax) yMax.value = "";
+  if (rMin) rMin.value = "0";
+  setFilter(currentFilter);
+});
+
+renderHero(getDailyPick(), "Film du jour");
 renderGenres();
 renderContinue();
+renderTop();
 applyFilters();
