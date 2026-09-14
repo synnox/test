@@ -53,6 +53,19 @@ function playSVG() {
   return '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
 }
 
+/* vidéos protégées (sibnet) : on les lit via le proxy local
+   (cf. server.js) qui relaie le flux avec le bon Referer. */
+function proxyURL(url) {
+  if (!url) return url;
+  if (/sibnet\.ru/i.test(url)) {
+    const base = location.protocol && /^https?:$/.test(location.protocol)
+      ? location.origin
+      : "http://127.0.0.1:8766";
+    return base + "/proxy?url=" + encodeURIComponent(url);
+  }
+  return url;
+}
+
 function infoSVG() {
   return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
 }
@@ -134,6 +147,30 @@ function toast(msg) {
   t._timer = setTimeout(() => t.classList.remove("show"), 2400);
 }
 
+/* historique de lecture : cookie par utilisateur (Accounts.historyKey)
+   + localStorage en secours. Chaque compte a sa propre watchlist. */
+function setHistoryCookie(list) {
+  const d = new Date();
+  d.setTime(d.getTime() + 365 * 864e5);
+  document.cookie =
+    Accounts.historyKey() + "=" + encodeURIComponent(JSON.stringify(list)) +
+    "; expires=" + d.toUTCString() + "; path=/; SameSite=Lax";
+}
+
+function saveAllHistory(list) {
+  setHistoryCookie(list);
+  try { localStorage.setItem(Accounts.historyKey(), JSON.stringify(list)); } catch (e) {}
+}
+
+function getHistory() {
+  const key = Accounts.historyKey();
+  try {
+    const c = Accounts.getCookie(key);
+    if (c) return JSON.parse(c);
+  } catch (e) {}
+  try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch (e) { return {}; }
+}
+
 function saveProgress(id, cur, dur) {
   const list = getHistory();
   const now = Date.now();
@@ -144,7 +181,7 @@ function saveProgress(id, cur, dur) {
   } else {
     list[id] = { ts: now, cur: cur || 0, dur: dur || 0 };
   }
-  localStorage.setItem("sn_history", JSON.stringify(list));
+  saveAllHistory(list);
 }
 
 function updateProgress(id, cur, dur) {
@@ -152,23 +189,19 @@ function updateProgress(id, cur, dur) {
   if (!list[id]) return;
   list[id].cur = cur;
   list[id].dur = dur;
-  localStorage.setItem("sn_history", JSON.stringify(list));
+  saveAllHistory(list);
 }
 
 function removeProgress(id) {
   const list = getHistory();
   delete list[id];
-  localStorage.setItem("sn_history", JSON.stringify(list));
+  saveAllHistory(list);
 }
 
 function isNearEnd(id) {
   const h = getHistory()[id];
   if (!h || !h.dur) return false;
   return h.cur >= h.dur - 40;
-}
-
-function getHistory() {
-  try { return JSON.parse(localStorage.getItem("sn_history") || "{}"); } catch (e) { return {}; }
 }
 
 function fmtTime(s) {

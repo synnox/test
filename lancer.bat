@@ -1,11 +1,35 @@
 @echo off
-title Sn Streaming
-echo ========================================
-echo         Sn Streaming - Lancement
-echo ========================================
+title Sn Streaming - Serveur local
+color 0b
+echo ==================================================
+echo          Sn Streaming - Serveur local + proxy
+echo ==================================================
 echo.
+
+cd /d "%~dp0"
+
+where node >nul 2>nul
+if errorlevel 1 (
+  echo [ERREUR] Node.js introuvable. Installe-le depuis https://nodejs.org/
+  pause
+  exit /b 1
+)
+
+echo Verification du port 8766...
+
+netstat -ano | findstr ":8766" | findstr "LISTENING" >nul 2>nul
+if errorlevel 1 (
+  start "Sn Streaming serveur" /min cmd /c "node server.js"
+  timeout /t 1 >nul
+) else (
+  echo Le serveur tourne deja (port 8766).
+)
+
 echo Ouverture du site dans le navigateur...
-start "" "%~dp0index.html"
+start "" "http://127.0.0.1:8766/index.html"
+
 echo.
-echo Site ouvert ! Vous pouvez fermer cette fenetre.
-timeout /t 3 >nul
+echo  Serveur :  http://127.0.0.1:8766/
+echo  Pour arreter le serveur : fermer la fenetre "Sn Streaming serveur".
+echo.
+endlocal

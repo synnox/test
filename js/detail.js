@@ -64,7 +64,8 @@ function play(url, label) {
   const video = document.getElementById("player");
   document.getElementById("nowPlaying").textContent = label;
   wrap.style.display = "";
-  video.src = url;
+  video.src = proxyURL(url);
+  video.load();
   video.play().catch(() => {});
   wrap.scrollIntoView({ behavior: "smooth", block: "start" });
   // NE PAS réinitialiser la position - la reprise se fait dans loadedmetadata
@@ -108,8 +109,11 @@ searchInput.addEventListener("input", () => {
   let saveTimer = null;
   let hasResumed = false;
 
+  // Ne PAS écraser la position pendant le chargement :
+  // loadedmetadata se déclenche avec currentTime = 0 (via le proxy),
+  // ce qui détruirait la position sauvegardée avant la reprise.
   video.addEventListener("loadedmetadata", () => {
-    updateProgress(item.id, video.currentTime, video.duration);
+    tryResume();
   });
 
   function tryResume() {
@@ -131,6 +135,8 @@ searchInput.addEventListener("input", () => {
       toast("Film terminé — retiré de la liste");
       return;
     }
+    // tant que la reprise n'est pas appliquée, ignorer currentTime ≈ 0
+    if (!hasResumed && video.currentTime < 5) return;
     if (saveTimer) return;
     saveTimer = setTimeout(() => {
       updateProgress(item.id, video.currentTime, video.duration);

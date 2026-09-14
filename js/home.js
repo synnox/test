@@ -95,8 +95,9 @@ document.addEventListener("click", (e) => {
   if (gc) { query = ""; document.getElementById("searchInput").value = ""; setFilter(gc.dataset.genre); window.scrollTo({ top: document.getElementById("catalogGrid").offsetTop - 120, behavior: "smooth" }); }
 });
 
-/* nav links */
+/* nav links (seuls les liens data-filter gèrent les filtres) */
 document.querySelectorAll(".nav-links a").forEach(a => {
+  if (!a.dataset.filter) return;
   a.addEventListener("click", (e) => { e.preventDefault(); setFilter(a.dataset.filter); });
 });
 

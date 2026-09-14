@@ -22,7 +22,7 @@ ETAT ACTUEL
 - Correctif GitHub Pages: meta name="referrer" content="no-referrer" dans index.html et movie.html + referrerpolicy sur la balise video (sinon 403 des CDN)
 - La recherche, filtres (Tous/Films/SF/Action/Drame), et continue watching fonctionnent
 - Le lecteur video marche sur movie.html?id=X
-- Historique de lecture sauvegarde dans localStorage (cle "sn_history")
+- Historique de lecture sauvegarde dans un cookie "sn_history" (+ fallback localStorage), cle "sn_history"
 - Le poster() dans app.js fait: item.poster || posterSVG(item) (fallback auto)
 
 FICHIERS CLES A RELIRE
