@@ -1,0 +1,87 @@
+SN STREAMING - NOTE DE PROJET
+==============================
+
+STRUCTURE DU PROJET
+C:\Users\sn\Desktop\sn-streaming\
+├── index.html          (page d'accueil : hero, genres, catalogue, top 10, continue watching)
+├── movie.html          (page détail + lecteur + films similaires)
+├── parametres.html     (compte, watchlist, favoris, stats, supprimer compte)
+├── favoris.html        (page "Ma Liste" = favoris perso ♥)
+├── historique.html     (historique complet : vus + en cours)
+├── mentions-legales.html
+├── lancer.bat          (double-clic : démarre serveur Node + ouvre http://127.0.0.1:8766/)
+├── server.js           (serveur local Node : static + proxy /proxy?url= pour sibnet)
+├── css/
+│   └── style.css       (dark theme, responsive, grid, hero, cards, player, stats, adv-search)
+└── js/
+    ├── data.js         (catalogue films: id, titre, poster TMDB, source video)
+    ├── accounts.js     (comptes + session + watchlist/historique/favoris par user via cookies)
+    ├── app.js          (utilitaires globaux: poster, cardHTML, renderGrid, toast, history, favoris,
+                         film du jour, random, stats, top10, similar, advancedSearch, getUnfinishedFilms)
+    ├── home.js         (accueil: hero film du jour, genres, continue watching, top 10, catalogue,
+                         filtres, recherche simple + avancée)
+    ├── detail.js       (détail: fiche, lecteur, reprise, favoris, films similaires)
+    ├── player.js       (lecteur custom: seek, vitesse, volume, fullscreen, raccourcis clavier)
+    └── parametres.js   (page paramètres: login/signup, logout, delete account, watchlist,
+                         favoris, stats, suppression d'entrées)
+
+ETAT ACTUEL
+- 35+ films dans le catalogue (ids 1 à 35, pas de séries)
+- Affiches: vraies images TMDB (media.themoviedb.org/t/p/w500/)
+- Vidéos: liens sibnet (video.sibnet.ru) + vida-loka.store dans data.js champ "source"
+- Proxy local Node (port 8766) requis pour lire les flux sibnet (contourne Referer + redirections)
+- Comptes utilisateurs: pseudo/mdp (min 2 chars), hash local, cookie sn_session
+- Chaque user a SON historique (sn_history_<hash>), SA watchlist (films non finis), SES favoris (sn_fav_<hash>)
+- Invités: sn_history + sn_fav (sans suffixe user)
+- Reprise lecture: auto au chargement (loadedmetadata/canplay/playing), sauvegarde ts toutes les 4s
+- Film terminé: marqué fin=true, sort de la watchlist, reste dans l'historique
+- Film du jour: seed = date (change chaque jour)
+- Surprends-moi: 🎲 film aléatoire
+- Top 10 perso: trié par temps regardé
+- Films similaires: même genres, max 10, sur page détail
+- Recherche avancée: année min/max, note min, genre, texte (titre/réalisateur/casting)
+- Thème dark/light (localStorage sn_theme)
+- Responsive: mobile-first, safe-area-inset, burger menu, touch-friendly
+- Zero dépendance, zero build, vanilla JS
+
+FICHIERS CLÉS A RELIRE
+- js/data.js: catalogue complet, modifier ICI pour ajouter/supprimer des films
+- js/accounts.js: logique comptes + cookies (sn_users, sn_session, sn_history_*, sn_fav_*)
+- js/app.js: fonctions partagées (poster, cardHTML, renderGrid, toast, getHistory, getFavorites,
+             getUnfinishedFilms, isFinished, finishProgress, getStats, getTopFilms,
+             getFullHistory, getSimilarFilms, advancedSearch, getDailyPick, getRandomFilm)
+- js/home.js: rendu hero, genres, continue, top10, catalogue + filtres + recherche avancée
+- js/detail.js: fiche, boutons play/resume/favori/share, tracking, films similaires
+- js/player.js: contrôles lecteur (barre, boutons, raccourcis clavier)
+- js/parametres.js: UI compte, watchlist (inachevés), favoris, stats, delete account
+- css/style.css: variables (--accent, --bg, --bg-card, --border, --grad, --radius), responsive @media
+
+AJOUTER UN FILM
+1. Ouvrir js/data.js
+2. Copier le dernier objet, incrémenter id
+3. Remplir: title, year, rating, genres[], duration, synopsis, director, cast[], poster (TMDB w500), source (lien .mp4/.m3u8)
+4. Sauvegarder -> Ctrl+F5 sur l'accueil (cache-buster ?v= dans HTML)
+
+CE QU'IL RESTE A FAIRE (si demande)
+- Séries (structure seasons/episodes existe dans app.js/detail.js, manque data + UI épisodes)
+- Sous-titres (.vtt/.srt) dans le player
+- Multi-qualité (1080p/720p switch)
+- Import/Export watchlist/favoris (JSON)
+- Sync multi-appareils (ex: export cookie -> QR code)
+- PWA (manifest + service worker) pour install mobile
+
+DEPLOIEMENT GITHUB PAGES (https://synnox.github.io/test/)
+- Le site en ligne est fonctionnel (mêmes fichiers que le local)
+- Proxy sibnet NE FONCTIONNE PAS sur GitHub Pages (pas de Node) -> seuls les liens vida-loka/CDN directs marchent en ligne
+- Si page vide: cache navigateur -> Ctrl+F5, ou re-push après maj cache-buster ?v=YYYYMMDD dans HTML
+- Video: CDN vida-loka bloque si Referer present -> meta no-referrer + referrerpolicy="no-referrer" sur <video> (en place)
+- Liens ?ff=... de vida-loka horodatés: s'ils expirent -> 403 -> prendre nouveau lien
+
+STACK
+- HTML/CSS/JS vanilla, zero dépendance, zero build
+- En local: lancer.bat -> démarre server.js (Node 18+) sur http://127.0.0.1:8766/
+- En ligne (GitHub Pages): fichiers statiques seulement, pas de proxy, pas de sibnet
+- Pas de framework, pas de base de données, tout dans les cookies du navigateur
+
+CACHE-BUSTER ACTUEL
+?v=20260919  (mettre à jour dans tous les .html après modification JS/CSS)
