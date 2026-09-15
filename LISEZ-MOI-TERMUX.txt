@@ -1,0 +1,70 @@
+SN STREAMING - LANCEMENT AUTOMATIQUE SUR TERMUX
+==================================================
+
+UNE SEULE COMMANDE À TAPER (après avoir extrait ce zip dans Termux) :
+
+    bash demarrer-termux.sh
+
+Ce script fait TOUT tout seul, dans l'ordre :
+  1. Configure l'accès au stockage si besoin (termux-setup-storage)
+  2. Installe Node.js si absent, et le répare automatiquement s'il
+     est cassé (erreur "CANNOT LINK EXECUTABLE")
+  3. Installe cloudflared si absent (pour un tunnel public stable)
+  4. Démarre le serveur local (server.js) PUIS crée le tunnel public
+     et affiche le lien à partager (https://xxxx.trycloudflare.com)
+
+Pour arrêter : Ctrl+C dans Termux (coupe le tunnel ET le serveur).
+
+Pour relancer une prochaine fois, tape simplement à nouveau :
+
+    bash demarrer-termux.sh
+
+(les étapes déjà faites - Node, cloudflared, stockage - seront
+détectées et sautées automatiquement, seul le serveur redémarrera)
+
+
+NE PAS S'ARRÊTER QUAND LA TABLETTE EST EN VEILLE
+==================================================
+Le script active maintenant un "wake-lock" automatiquement
+(termux-wake-lock), ce qui empêche Android de couper Termux
+quand l'écran s'éteint. En plus de ça, il faut AUSSI :
+
+  1. Désactiver l'optimisation de batterie pour Termux :
+     Paramètres Android > Applications > Termux > Batterie
+     > "Sans restriction" (ou équivalent selon le téléphone)
+  2. Ne pas swiper Termux pour le fermer depuis les apps
+     récentes - laisse-le tourner en arrière-plan
+  3. Garder une connexion internet active (wifi ou data)
+
+Avec ça, le lien reste actif même écran éteint.
+
+
+LE LIEN PUBLIC CHANGE-T-IL À CHAQUE FOIS ?
+==================================================
+Oui, par défaut. cloudflared génère un tunnel "rapide" gratuit
+(quick tunnel) avec une nouvelle adresse aléatoire à chaque
+lancement (ex: https://mots-aleatoires.trycloudflare.com).
+C'est normal et gratuit, sans compte à créer.
+
+Pour avoir un lien FIXE qui ne change jamais, il faut :
+  - posséder un nom de domaine (acheté, ex: chez Cloudflare,
+    Namecheap, etc.)
+  - créer un compte Cloudflare gratuit et y ajouter ce domaine
+  - créer un "tunnel nommé" (cloudflared tunnel login + create)
+    plutôt qu'un tunnel rapide
+C'est plus technique - dis-le si tu veux qu'on configure ça.
+
+
+ALTERNATIVE GRATUITE : UN NOM CHOISI (PAS 100% GARANTI)
+==================================================
+Sans domaine à acheter, tu peux demander un nom personnalisé
+via localtunnel avec le script demarrer-lien-fixe.sh :
+
+    bash demarrer-lien-fixe.sh sn-streaming
+
+Ça tente de te donner https://sn-streaming.loca.lt
+Si ce nom est déjà pris par quelqu'un d'autre ce jour-là,
+localtunnel en propose un autre automatiquement à la place.
+Ce n'est donc pas garanti à 100%, mais gratuit et souvent
+disponible en pratique. Change "sn-streaming" par le nom
+que tu veux essayer.

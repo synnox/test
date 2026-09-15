@@ -1,0 +1,134 @@
+[2026-09-15T18:11:19.908Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T18:11:19.911Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T18:11:32.683Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T18:11:32.687Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T18:12:42.956Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T18:12:42.959Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T18:13:58.604Z] [info] Démarrage du serveur local (server.js)…
+[2026-09-15T18:13:58.657Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T18:13:58.660Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T18:13:59.029Z] [info] Serveur local OK  →  http://127.0.0.1:8766/
+[2026-09-15T18:13:59.031Z] [info] 
+[2026-09-15T18:13:59.031Z] [info] Pour ne plus dépendre de localtunnel, installe cloudflared :
+[2026-09-15T18:13:59.031Z] [info]   Windows :  winget install cloudflare.cloudflared
+[2026-09-15T18:13:59.032Z] [info] Installation de localtunnel (une seule fois, pas de npx)…
+[2026-09-15T18:13:59.033Z] [warn] install+localtunnel a échoué : spawn EINVAL
+[2026-09-15T18:13:59.033Z] [warn] Repli sur npx localtunnel (moins fiable sur Termux)…
+[2026-09-15T18:13:59.036Z] [warn] npx localtunnel a échoué : localtunnel impossible : spawn npx ENOENT
+[2026-09-15T18:13:59.036Z] [error] Aucun tunnel n'a pu être créé. Vérifie ta connexion internet,
+[2026-09-15T18:13:59.037Z] [error] puis relance  :  node public.js
+[2026-09-15T18:13:59.037Z] [error] Le serveur reste accessible en local : http://127.0.0.1:8766/
+[2026-09-15T18:14:12.256Z] [info] Démarrage du serveur local (server.js)…
+[2026-09-15T18:14:12.271Z] [info] Serveur local OK  →  http://127.0.0.1:8766/
+[2026-09-15T18:14:12.273Z] [info] 
+[2026-09-15T18:14:12.273Z] [info] Pour ne plus dépendre de localtunnel, installe cloudflared :
+[2026-09-15T18:14:12.273Z] [info]   Windows :  winget install cloudflare.cloudflared
+[2026-09-15T18:14:12.275Z] [info] Installation de localtunnel (une seule fois, pas de npx)…
+[2026-09-15T18:14:12.275Z] [warn] install+localtunnel a échoué : spawn EINVAL
+[2026-09-15T18:14:12.275Z] [warn] Repli sur npx localtunnel (moins fiable sur Termux)…
+[2026-09-15T18:14:12.278Z] [warn] npx localtunnel a échoué : localtunnel impossible : spawn npx ENOENT
+[2026-09-15T18:14:12.278Z] [error] Aucun tunnel n'a pu être créé. Vérifie ta connexion internet,
+[2026-09-15T18:14:12.278Z] [error] puis relance  :  node public.js
+[2026-09-15T18:14:12.278Z] [error] Le serveur reste accessible en local : http://127.0.0.1:8766/
+[2026-09-15T18:14:12.316Z] [error] Le port 8766 est déjà utilisé. Ferme l'autre instance ou change SN_PORT.
+[2026-09-15T18:14:12.325Z] [warn] Le serveur local s'est arrêté (code 1).
+[2026-09-15T18:14:12.325Z] [info] Relance dans 1s (1/5)…
+[2026-09-15T18:14:13.337Z] [info] Démarrage du serveur local (server.js)…
+[2026-09-15T18:14:13.343Z] [info] Serveur relancé et opérationnel.
+[2026-09-15T18:14:13.392Z] [error] Le port 8766 est déjà utilisé. Ferme l'autre instance ou change SN_PORT.
+[2026-09-15T18:14:13.402Z] [warn] Le serveur local s'est arrêté (code 1).
+[2026-09-15T18:14:13.402Z] [info] Relance dans 1s (1/5)…
+[2026-09-15T18:14:14.417Z] [info] Démarrage du serveur local (server.js)…
+[2026-09-15T18:14:14.422Z] [info] Serveur relancé et opérationnel.
+[2026-09-15T18:14:14.469Z] [error] Le port 8766 est déjà utilisé. Ferme l'autre instance ou change SN_PORT.
+[2026-09-15T18:14:14.479Z] [warn] Le serveur local s'est arrêté (code 1).
+[2026-09-15T18:14:14.479Z] [info] Relance dans 1s (1/5)…
+[2026-09-15T18:14:15.479Z] [info] Démarrage du serveur local (server.js)…
+[2026-09-15T18:14:15.484Z] [info] Serveur relancé et opérationnel.
+[2026-09-15T18:14:15.532Z] [error] Le port 8766 est déjà utilisé. Ferme l'autre instance ou change SN_PORT.
+[2026-09-15T18:14:15.542Z] [warn] Le serveur local s'est arrêté (code 1).
+[2026-09-15T18:14:15.542Z] [info] Relance dans 1s (1/5)…
+[2026-09-15T18:14:16.553Z] [info] Démarrage du serveur local (server.js)…
+[2026-09-15T18:14:16.559Z] [info] Serveur relancé et opérationnel.
+[2026-09-15T18:14:16.608Z] [error] Le port 8766 est déjà utilisé. Ferme l'autre instance ou change SN_PORT.
+[2026-09-15T18:14:16.617Z] [warn] Le serveur local s'est arrêté (code 1).
+[2026-09-15T18:14:16.618Z] [info] Relance dans 1s (1/5)…
+[2026-09-15T18:14:17.628Z] [info] Démarrage du serveur local (server.js)…
+[2026-09-15T18:14:17.633Z] [info] Serveur relancé et opérationnel.
+[2026-09-15T18:14:17.680Z] [error] Le port 8766 est déjà utilisé. Ferme l'autre instance ou change SN_PORT.
+[2026-09-15T18:14:17.690Z] [warn] Le serveur local s'est arrêté (code 1).
+[2026-09-15T18:14:17.690Z] [info] Relance dans 1s (1/5)…
+[2026-09-15T18:14:18.699Z] [info] Démarrage du serveur local (server.js)…
+[2026-09-15T18:14:18.704Z] [info] Serveur relancé et opérationnel.
+[2026-09-15T18:14:18.751Z] [error] Le port 8766 est déjà utilisé. Ferme l'autre instance ou change SN_PORT.
+[2026-09-15T18:14:18.761Z] [warn] Le serveur local s'est arrêté (code 1).
+[2026-09-15T18:14:18.761Z] [info] Relance dans 1s (1/5)…
+[2026-09-15T18:14:19.777Z] [info] Démarrage du serveur local (server.js)…
+[2026-09-15T18:14:19.782Z] [info] Serveur relancé et opérationnel.
+[2026-09-15T18:14:19.827Z] [error] Le port 8766 est déjà utilisé. Ferme l'autre instance ou change SN_PORT.
+[2026-09-15T18:14:19.837Z] [warn] Le serveur local s'est arrêté (code 1).
+[2026-09-15T18:14:19.837Z] [info] Relance dans 1s (1/5)…
+[2026-09-15T18:14:20.850Z] [info] Démarrage du serveur local (server.js)…
+[2026-09-15T18:14:20.855Z] [info] Serveur relancé et opérationnel.
+[2026-09-15T18:14:20.902Z] [error] Le port 8766 est déjà utilisé. Ferme l'autre instance ou change SN_PORT.
+[2026-09-15T18:14:20.911Z] [warn] Le serveur local s'est arrêté (code 1).
+[2026-09-15T18:14:20.911Z] [info] Relance dans 1s (1/5)…
+[2026-09-15T18:20:20.371Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T18:20:20.375Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T18:21:22.842Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T18:21:22.846Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T18:28:50.585Z] [error] Le port 8766 est déjà utilisé. Ferme l'autre instance ou change SN_PORT.
+[2026-09-15T18:29:38.159Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T18:29:38.162Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T18:34:05.669Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T18:34:05.673Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T18:34:34.411Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T18:34:34.415Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T18:43:44.495Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T18:43:44.499Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T18:44:21.323Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T18:44:21.328Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T18:49:24.722Z] [error] Le port 8766 est déjà utilisé. Ferme l'autre instance ou change SN_PORT.
+[2026-09-15T18:49:41.293Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T18:49:41.296Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T18:50:28.847Z] [info] PROXY -> https://video.sibnet.ru/v/ec59a4b7991e765c7bc382306658b759/4110281.mp4
+[2026-09-15T18:50:29.249Z] [info]   <- 200 découpé -> 206 bytes 0-*/*
+[2026-09-15T18:53:59.792Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T18:53:59.801Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T18:55:22.922Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T18:55:22.927Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T18:59:18.120Z] [error] Le port 8766 est déjà utilisé. Ferme l'autre instance ou change SN_PORT.
+[2026-09-15T19:00:46.784Z] [info] Démarrage du serveur local (server.js)…
+[2026-09-15T19:00:46.844Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T19:00:46.847Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T19:00:47.207Z] [info] Serveur local OK  →  http://127.0.0.1:8766/
+[2026-09-15T19:00:47.209Z] [info] 
+[2026-09-15T19:00:47.209Z] [info] Pour ne plus dépendre de localtunnel, installe cloudflared :
+[2026-09-15T19:00:47.209Z] [info]   Windows :  winget install cloudflare.cloudflared
+[2026-09-15T19:00:47.211Z] [info] Installation de localtunnel (une seule fois, pas de npx)…
+[2026-09-15T19:00:47.211Z] [warn] install+localtunnel a échoué : spawn EINVAL
+[2026-09-15T19:00:47.212Z] [warn] Repli sur npx localtunnel (moins fiable sur Termux)…
+[2026-09-15T19:00:47.214Z] [warn] npx localtunnel a échoué : localtunnel impossible : spawn npx ENOENT
+[2026-09-15T19:00:47.214Z] [error] Aucun tunnel n'a pu être créé. Vérifie ta connexion internet,
+[2026-09-15T19:00:47.214Z] [error] puis relance  :  node public.js
+[2026-09-15T19:00:47.214Z] [error] Le serveur reste accessible en local : http://127.0.0.1:8766/
+[2026-09-15T19:03:13.577Z] [error] Le port 8766 est déjà utilisé. Ferme l'autre instance ou change SN_PORT.
+[2026-09-15T19:03:18.533Z] [warn] Le serveur local s'est arrêté (code 4294967295).
+[2026-09-15T19:03:18.533Z] [info] Relance dans 1s (1/5)…
+[2026-09-15T19:03:19.541Z] [info] Démarrage du serveur local (server.js)…
+[2026-09-15T19:03:19.652Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T19:03:19.659Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T19:03:19.972Z] [info] Serveur relancé et opérationnel.
+[2026-09-15T19:11:19.751Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T19:11:19.756Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T19:11:33.734Z] [error] Le port 8766 est déjà utilisé. Ferme l'autre instance ou change SN_PORT.
+[2026-09-15T19:11:48.038Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T19:11:48.045Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T19:44:53.422Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T19:44:53.434Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T19:45:40.085Z] [info] PROXY -> https://video.sibnet.ru/v/ec59a4b7991e765c7bc382306658b759/4110281.mp4
+[2026-09-15T19:45:40.562Z] [info]   <- 200 découpé -> 206 bytes 0-*/*
+[2026-09-15T19:55:30.791Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T19:55:30.795Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)
+[2026-09-15T19:59:27.552Z] [info] Serveur prêt : http://127.0.0.1:8766/
+[2026-09-15T19:59:27.556Z] [info] Proxy vidéo : /proxy?url=...  (domaines autorisés : sibnet.ru)

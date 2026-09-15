@@ -5,11 +5,6 @@
   const wlNote = document.getElementById("wlNote");
   const paramSub = document.getElementById("paramSub");
 
-  function esc(s) {
-    return String(s).replace(/[&<>"']/g, c =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  }
-
   /* ---------- compte ---------- */
   const forcedLogin = location.search.includes("login=1");
 
@@ -22,7 +17,7 @@
           <div class="acct-on-ico">👤</div>
           <div class="acct-on-info">
             <h3>${esc(u)}</h3>
-            <p>Connecté. Ta watchlist est personnelle et sauvegardée dans un cookie.</p>
+            <p>Connecté. Ta watchlist est personnelle et sauvegardée localement (cookies + stockage local).</p>
             <div class="acct-btns">
               <button type="button" class="btn btn-ghost btn-sm" id="btnLogout">Se déconnecter</button>
               <button type="button" class="btn btn-ghost btn-sm btn-danger" id="btnDeleteAcct">Supprimer mon compte</button>
@@ -73,9 +68,16 @@
 
     if (lf) lf.addEventListener("submit", (e) => {
       e.preventDefault();
-      const err = Accounts.login(lf.pseudo.value, lf.mdp.value);
-      document.getElementById("loginErr").textContent = err || "";
-      if (!err) { toast("Connecté !"); afterAuth(); }
+      const btn = lf.querySelector("button[type=submit]");
+      btn.disabled = true;
+      Accounts.login(lf.pseudo.value, lf.mdp.value).then(err => {
+        btn.disabled = false;
+        document.getElementById("loginErr").textContent = err || "";
+        if (!err) { toast("Connecté !"); afterAuth(); }
+      }).catch(() => {
+        btn.disabled = false;
+        document.getElementById("loginErr").textContent = "Erreur inattendue, réessaie.";
+      });
     });
 
     if (sf) sf.addEventListener("submit", (e) => {
@@ -86,9 +88,16 @@
         errEl.textContent = "Les mots de passe ne correspondent pas.";
         return;
       }
-      const err = Accounts.register(sf.pseudo.value, sf.mdp.value);
-      errEl.textContent = err || "";
-      if (!err) { toast("Compte créé !"); afterAuth(); }
+      const btn = sf.querySelector("button[type=submit]");
+      btn.disabled = true;
+      Accounts.register(sf.pseudo.value, sf.mdp.value).then(err => {
+        btn.disabled = false;
+        errEl.textContent = err || "";
+        if (!err) { toast("Compte créé !"); afterAuth(); }
+      }).catch(() => {
+        btn.disabled = false;
+        errEl.textContent = "Erreur inattendue, réessaie.";
+      });
     });
   }
 
@@ -97,6 +106,7 @@
     renderAccount();
     renderWatchlist();
     renderStats();
+    renderFavorites();
     if (Accounts.isLoggedIn() && location.search.includes("login=1")) {
       history.replaceState(null, "", "parametres.html");
     }
@@ -163,6 +173,55 @@
     });
   }
 
+  /* ---------- sauvegarde / restauration ---------- */
+  function initBackup() {
+    const btnExp = document.getElementById("btnExport");
+    const btnImp = document.getElementById("btnImport");
+    const file = document.getElementById("importFile");
+    if (btnExp) btnExp.addEventListener("click", () => {
+      const data = {
+        app: "sn-streaming",
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        user: Accounts.currentUser() || null,
+        favorites: getFavorites(),
+        history: getHistory(),
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "sn-streaming-sauvegarde-" + new Date().toISOString().slice(0, 10) + ".json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+      toast("Sauvegarde téléchargée", "ok");
+    });
+    if (btnImp) btnImp.addEventListener("click", () => file && file.click());
+    if (file) file.addEventListener("change", () => {
+      const f = file.files && file.files[0];
+      file.value = "";
+      if (!f) return;
+      const rd = new FileReader();
+      rd.onload = () => {
+        try {
+          const d = JSON.parse(rd.result);
+          if (!d || d.app !== "sn-streaming" || !("favorites" in d) || !("history" in d)) throw new Error("bad");
+          if (!confirm("Remplacer tes favoris et ton historique actuels par cette sauvegarde ?")) return;
+          saveFavorites(sanitizeFavorites(d.favorites));
+          saveAllHistory(sanitizeHistory(d.history));
+          toast("Données restaurées !", "ok");
+          renderWatchlist();
+          renderStats();
+          renderFavorites();
+        } catch (e) {
+          toast("Fichier invalide ou non reconnu.", "err");
+        }
+      };
+      rd.readAsText(f);
+    });
+  }
+
   /* ---------- favoris ---------- */
   function renderFavorites() {
     const box = document.getElementById("favList");
@@ -202,4 +261,6 @@
   renderAccount();
   renderWatchlist();
   renderStats();
+  renderFavorites();
+  initBackup();
 })();

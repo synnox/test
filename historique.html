@@ -1,12 +1,20 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>(function(){try{var m=localStorage.getItem("sn_theme");if(m==="light"||(m!=="dark"&&window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches)){document.documentElement.setAttribute("data-theme","light");}}catch(e){}})();</script>
   <meta name="referrer" content="no-referrer">
   <title>Historique — Sn Streaming</title>
-  <link rel="stylesheet" href="css/style.css?v=20260919">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20260924">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#080c12" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#eef4ff" media="(prefers-color-scheme: light)">
+  <link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body>
 
@@ -15,27 +23,29 @@
       <span class="dot"></span>
       <span>Sn <span class="badge">Streaming</span></span>
     </a>
-    <div class="nav-links">
+    <div class="nav-links" id="navLinks">
       <a href="index.html">Accueil</a>
       <a href="index.html?filter=Films">Films</a>
       <a href="favoris.html">Ma Liste</a>
       <a href="historique.html" class="active">Historique</a>
       <a href="parametres.html">Paramètres</a>
-    </div>
     <button class="theme-toggle" id="themeToggle" aria-label="Changer de thème" title="Basculer thème">
-      <svg class="theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-      <svg class="theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-    </button>
-    <a class="nav-user-btn" id="navUser" href="parametres.html" title="Mon compte"></a>
-    <div class="burger" id="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></div>
+        <svg class="theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <svg class="theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <a class="nav-user-btn" id="navUser" href="parametres.html" title="Mon compte"></a>
+    </div>
+    <div class="burger" id="burger" role="button" tabindex="0" aria-label="Menu" aria-expanded="false" aria-controls="navLinks"><span></span><span></span><span></span></div>
   </nav>
 
-  <header class="legal-head">
-    <h1>Historique de lecture</h1>
-    <p id="histNote"></p>
+  <header class="page-head">
+    <div class="page-head-inner">
+      <h1><span class="ph-ico">🕘</span> Historique de lecture</h1>
+      <p id="histNote"></p>
+    </div>
   </header>
 
-  <div class="legal-page">
+  <div class="legal-page page-wide">
     <a class="btn btn-ghost btn-sm legal-back" href="index.html">&larr; Retour à l'accueil</a>
     <div class="grid" id="histGrid"></div>
   </div>
@@ -56,16 +66,16 @@
     <p class="footer-note">Contenus de démonstration &mdash; sources dans <span>js/data.js</span>.</p>
   </footer>
 
-  <script src="js/data.js?v=20260919"></script>
-  <script src="js/accounts.js?v=20260919"></script>
-  <script src="js/app.js?v=20260919"></script>
+  <script src="js/data.js?v=20260924"></script>
+  <script src="js/accounts.js?v=20260924"></script>
+  <script src="js/app.js?v=20260924"></script>
   <script>
   (function(){
     const u = Accounts.currentUser();
-    document.getElementById("histNote").textContent = u
-      ? "Historique de " + u + " — films vus ou en cours."
-      : "Historique invité — films vus ou en cours.";
     const entries = getFullHistory();
+    document.getElementById("histNote").textContent = (u
+      ? "Historique de " + u
+      : "Historique invité") + " — " + entries.length + " film" + (entries.length > 1 ? "s" : "") + " vus ou en cours.";
     if (!entries.length) {
       document.getElementById("histGrid").innerHTML = '<div class="empty" style="width:100%"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg><p>Aucun film dans l\'historique.</p><a class="btn btn-primary" style="margin-top:14px" href="index.html">Commencer à regarder</a></div>';
       return;

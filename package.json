@@ -1,0 +1,15 @@
+{
+  "name": "sn-streaming",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lecteur de streaming local — dépendances zéro (Node >= 18)",
+  "scripts": {
+    "start": "node server.js",
+    "public": "node public.js",
+    "test": "node --test test/*.test.js",
+    "check": "node scripts/check-data.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

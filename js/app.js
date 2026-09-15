@@ -1,5 +1,61 @@
 /* ============ utilitaires SN Streaming ============ */
 
+/* Échappement HTML centralisé (utilisé partout où une valeur provient
+   du catalogue ou de l'utilisateur est injectée dans le DOM). */
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/* ---------- stockage versionné (localStorage primaire, cookies en migration) ---------- */
+
+const STORE_PREFIX = "sn1_";
+function stKey(name) { return STORE_PREFIX + name; }
+
+// Historique : clé de stockage = "sn1_history_<accountsKey>"
+function stHistoryKey() { return stKey("history_" + Accounts.historyKey()); }
+function stFavKey() { return stKey("fav_" + getFavoritesKey()); }
+
+function sanitizeHistory(obj) {
+  const out = {};
+  if (!obj || typeof obj !== "object") return out;
+  for (const k of Object.keys(obj)) {
+    const id = Number(k);
+    if (!Number.isInteger(id) || id <= 0) continue;
+    const e = obj[k];
+    if (!e || typeof e !== "object") continue;
+    const dur = Number(e.dur);
+    const cur = Number(e.cur);
+    out[id] = {
+      cur: Number.isFinite(cur) ? Math.max(0, cur) : 0,
+      dur: Number.isFinite(dur) ? Math.max(0, dur) : 0,
+      ts: Number.isFinite(Number(e.ts)) ? Number(e.ts) : Date.now(),
+      fin: !!e.fin,
+    };
+  }
+  return out;
+}
+
+function sanitizeFavorites(arr) {
+  if (!Array.isArray(arr)) return [];
+  const out = [];
+  for (const v of arr) {
+    const n = Number(v);
+    if (Number.isInteger(n) && n > 0 && !out.includes(n)) out.push(n);
+  }
+  return out;
+}
+
+// Nettoie les données d'un compte (appelé lors de la suppression du compte).
+window.__clearUserStorage = function (u) {
+  const suffix = (Accounts.userStorageSuffix && Accounts.userStorageSuffix(u)) || String(u);
+  const remove = (k) => { try { localStorage.removeItem(k); } catch (e) {} };
+  remove(stKey("history_sn_history_" + suffix));
+  remove(stKey("fav_sn_fav_" + suffix));
+};
+
+/* ---------- poster ---------- */
+
 function posterGradient(id) {
   const palettes = [
     ["#1d2740", "#e50914"],
@@ -53,50 +109,162 @@ function playSVG() {
   return '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
 }
 
-/* vidéos protégées (sibnet) : on les lit via le proxy local
-   (cf. server.js) qui relaie le flux avec le bon Referer. */
-function proxyURL(url) {
-  if (!url) return url;
-  if (/sibnet\.ru/i.test(url)) {
-    const base = location.protocol && /^https?:$/.test(location.protocol)
-      ? location.origin
-      : "http://127.0.0.1:8766";
-    return base + "/proxy?url=" + encodeURIComponent(url);
+let serverCheck = null;
+/* Détecte la présence du serveur local/proxy (endpoint /_health).
+   Ashkrone que si on est sur GitHub Pages ou un hébergement statique,
+   le proxy n'existe pas. */
+function serverAvailable() {
+  if (serverCheck === null) {
+    serverCheck = fetch(location.origin + "/_health", { method: "GET", cache: "no-store" })
+      .then(r => r.status === 200)
+      .catch(() => false);
+    serverCheck.catch(() => {});
   }
-  return url;
+  return serverCheck;
+}
+
+/* vidéos protégées (sibnet) : on les lit via le proxy local
+   (cf. server.js). S'il n'y a pas de serveur (GitHub Pages), on renvoie
+   l'URL directe : le lecteur affichera une erreur propre plutôt qu'un
+   faux "/proxy?url=..." 404. */
+function proxyURL(url) {
+  if (!url) return Promise.resolve(url);
+  if (/sibnet\.ru/i.test(url)) {
+    return serverAvailable().then(ok => {
+      if (!ok) return url;
+      const base = location.protocol && /^https?:$/.test(location.protocol)
+        ? location.origin
+        : "http://127.0.0.1:8766";
+      return base + "/proxy?url=" + encodeURIComponent(url);
+    });
+  }
+  return Promise.resolve(url);
 }
 
 function infoSVG() {
   return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
 }
 
-/* menu burger (mobile) */
+/* ============ tiroir de navigation mobile ============
+   Contient TOUT (liens, recherche, thème, compte) dans une
+   sidebar droite sur ≤900px, avec voile arrière. */
 (function () {
   const burger = document.getElementById("burger");
   const links = document.querySelector(".nav-links");
   if (!burger || !links) return;
-  burger.addEventListener("click", () => {
-    const open = links.classList.toggle("open");
+
+  const overlay = document.createElement("div");
+  overlay.className = "side-overlay";
+  overlay.setAttribute("aria-hidden", "true");
+  // le voile doit vivre dans le MÊME contexte d'empilement que le tiroir
+  // (.nav-links est un enfant de .navbar qui porte z-index:100) :
+  // posé dans <body>, il s'afficherait AU-DESSUS du tiroir et bloquerait
+  // tous les clics de la sidebar.
+  (document.querySelector(".navbar") || document.body).appendChild(overlay);
+
+  const WIDE = 900;
+  function setOpen(open) {
+    links.classList.toggle("open", open);
+    overlay.classList.toggle("show", open);
     burger.setAttribute("aria-expanded", open ? "true" : "false");
+    document.body.classList.toggle("menu-locked", open);
+  }
+  function toggle() { setOpen(!links.classList.contains("open")); }
+  burger.addEventListener("click", toggle);
+  burger.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
   });
-  links.addEventListener("click", (e) => {
-    if (e.target.closest("a")) {
-      links.classList.remove("open");
-      burger.setAttribute("aria-expanded", "false");
-    }
-  });
+  overlay.addEventListener("click", () => setOpen(false));
+  links.addEventListener("click", (e) => { if (e.target.closest("a")) setOpen(false); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") setOpen(false); });
+  window.addEventListener("resize", () => { if (window.innerWidth > WIDE) setOpen(false); });
 })();
 
-/* theme toggle (bleu & noir <=> bleu & blanc) */
+/* ============ THEME : clair / sombre / auto ============
+   Le choix est appliqué AVANT le premier rendu par un petit script
+   inline dans le <head> de chaque page (pas de flash).
+   Ici : menu popover + mémorisation (sn_theme = light|dark|system). */
 (function () {
   const btn = document.getElementById("themeToggle");
   if (!btn) return;
-  const saved = localStorage.getItem("sn_theme");
-  if (saved === "light") document.documentElement.setAttribute("data-theme", "light");
-  btn.addEventListener("click", () => {
-    const isLight = document.documentElement.getAttribute("data-theme") === "light";
-    document.documentElement.setAttribute("data-theme", isLight ? "" : "light");
-    localStorage.setItem("sn_theme", isLight ? "" : "light");
+
+  const readMode = () => {
+    const m = localStorage.getItem("sn_theme");
+    return m === "light" || m === "dark" ? m : "system";
+  };
+
+  function applyMode(mode) {
+    if (mode === "light") document.documentElement.setAttribute("data-theme", "light");
+    else document.documentElement.removeAttribute("data-theme");
+    try { localStorage.setItem("sn_theme", mode); } catch (e) {}
+    markActive();
+  }
+
+  const IC = { stroke: "currentColor", "stroke-width": "1.8", "stroke-linecap": "round", "stroke-linejoin": "round", fill: "none" };
+  const ico = (inner) => `<svg viewBox="0 0 24 24" ` +
+    Object.entries(IC).map(([k, v]) => `${k}="${v}"`).join(" ") + `>${inner}</svg>`;
+
+  const menu = document.createElement("div");
+  menu.className = "theme-menu";
+  menu.setAttribute("role", "menu");
+  menu.innerHTML = [
+    { m: "light", inner: '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>', label: "Clair" },
+    { m: "dark", inner: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>', label: "Sombre" },
+    { m: "system", inner: '<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M9 21h6M12 17v4"/>', label: "Auto (système)" },
+  ].map(o => `<button type="button" class="tm-item" data-mode="${o.m}" role="menuitem">${ico(o.inner)}<span>${o.label}</span><span class="tm-check">✓</span></button>`).join("");
+  document.body.appendChild(menu);
+
+  function markActive() {
+    const cur = readMode();
+    menu.querySelectorAll(".tm-item").forEach(b => b.classList.toggle("active", b.dataset.mode === cur));
+  }
+
+  function positionMenu() {
+    const r = btn.getBoundingClientRect();
+    menu.style.top = (r.bottom + 8) + "px";
+    const w = menu.offsetWidth;
+    let left = r.right - w;
+    left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
+    menu.style.left = left + "px";
+  }
+
+  function openMenu(open) {
+    btn.setAttribute("aria-expanded", String(open));
+    if (!open) { menu.classList.remove("show"); return; }
+    menu.style.position = "fixed";
+    positionMenu();
+    menu.classList.add("show");
+  }
+
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const wasOpen = menu.classList.contains("show");
+    openMenu(!wasOpen);
+  });
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".theme-menu") && btn !== e.target && !btn.contains(e.target)) openMenu(false);
+  });
+  menu.addEventListener("click", (e) => {
+    const b = e.target.closest(".tm-item");
+    if (!b) return;
+    applyMode(b.dataset.mode);
+    openMenu(false);
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") openMenu(false); });
+  window.addEventListener("resize", () => { if (menu.classList.contains("show")) positionMenu(); });
+
+  markActive();
+})();
+
+/* raccourci clavier : "/" pour rechercher (hors champs de saisie) */
+(function () {
+  document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key !== "/") return;
+    const tag = document.activeElement && document.activeElement.tagName;
+    if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" || tag === "BUTTON") return;
+    const inp = document.getElementById("searchInput");
+    if (inp && !inp.disabled) { e.preventDefault(); inp.focus(); inp.select(); }
   });
 })();
 
@@ -105,16 +273,17 @@ function itemJSON(id) {
 }
 
 function cardHTML(item) {
+  const t = esc(item.title);
   const star = `<span class="star">${starSVG()} ${item.rating.toFixed(1)}</span>`;
-  const meta = item.type === "movie" ? item.duration : `${item.seasons.length}S`;
+  const meta = item.type === "movie" ? esc(item.duration) : `${item.seasons.length}S`;
   const h = getHistory()[item.id];
   const pct = h && h.dur > 0 ? Math.min(100, Math.round((h.cur / h.dur) * 100)) : 0;
   const fav = isFavorite(item.id);
   return `
-    <div class="card" data-id="${item.id}" data-title="${item.title}" data-genres="${item.genres.join(",")}" data-type="${item.type}">
+    <div class="card" data-id="${item.id}" title="${esc(item.title)}" data-title="${esc(t)}" data-genres="${esc(item.genres.join(","))}" data-type="${esc(item.type)}">
       <div class="card-poster">
-        <span class="type-badge ${item.type}">${item.type}</span>
-        <img src="${poster(item)}" alt="${item.title}" loading="lazy">
+        <span class="type-badge ${esc(item.type)}">${esc(item.type)}</span>
+        <img src="${poster(item)}" alt="${t}" loading="lazy">
         <span class="runtime">${meta}</span>
         <button class="card-fav ${fav ? 'active' : ''}" data-fav="${item.id}" title="${fav ? 'Retirer des favoris' : 'Ajouter à Ma Liste'}">
           <svg viewBox="0 0 24 24" fill="${fav ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -123,8 +292,8 @@ function cardHTML(item) {
         ${pct > 0 ? `<div class="card-progress"><div class="card-progress-fill" style="width:${pct}%"></div></div>` : ""}
       </div>
       <div class="card-body">
-        <h3>${item.title}</h3>
-        <div class="sub">${star}<span>${item.year}</span><span>${item.genres[0]}</span></div>
+        <h3>${t}</h3>
+        <div class="sub">${star}<span>${item.year}</span><span>${esc(item.genres[0])}</span></div>
       </div>
     </div>`;
 }
@@ -138,41 +307,48 @@ function renderGrid(items, containerId, emptyMsg) {
   el.innerHTML = items.map(cardHTML).join("");
 }
 
-function toast(msg) {
+function toast(msg, type) {
   let t = document.getElementById("toast");
   if (!t) {
     t = document.createElement("div");
     t.id = "toast";
+    t.setAttribute("role", "status");
+    t.setAttribute("aria-live", "polite");
     document.body.appendChild(t);
   }
   t.textContent = msg;
+  t.dataset.type = type || "";
+  t.classList.toggle("ok", type === "ok");
+  t.classList.toggle("err", type === "err");
   t.classList.add("show");
   clearTimeout(t._timer);
   t._timer = setTimeout(() => t.classList.remove("show"), 2400);
 }
 
-/* historique de lecture : cookie par utilisateur (Accounts.historyKey)
-   + localStorage en secours. Chaque compte a sa propre watchlist. */
-function setHistoryCookie(list) {
-  const d = new Date();
-  d.setTime(d.getTime() + 365 * 864e5);
-  document.cookie =
-    Accounts.historyKey() + "=" + encodeURIComponent(JSON.stringify(list)) +
-    "; expires=" + d.toUTCString() + "; path=/; SameSite=Lax";
-}
+/* ============ historique de lecture ============
+   Stockage versionné : localStorage PRIMAIRE (clés sn1_*),
+   cookies conservés uniquement pour la migration des anciennes données. */
 
 function saveAllHistory(list) {
-  setHistoryCookie(list);
-  try { localStorage.setItem(Accounts.historyKey(), JSON.stringify(list)); } catch (e) {}
+  try { localStorage.setItem(stHistoryKey(), JSON.stringify(list)); } catch (e) {}
 }
 
 function getHistory() {
-  const key = Accounts.historyKey();
   try {
-    const c = Accounts.getCookie(key);
-    if (c) return JSON.parse(c);
+    const raw = localStorage.getItem(stHistoryKey());
+    if (raw) return sanitizeHistory(JSON.parse(raw));
   } catch (e) {}
-  try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch (e) { return {}; }
+  // migration depuis l'ancien cookie
+  try {
+    const c = Accounts.getCookie(Accounts.historyKey());
+    if (c) {
+      const val = sanitizeHistory(JSON.parse(c));
+      saveAllHistory(val);
+      Accounts.delCookie(Accounts.historyKey());
+      return val;
+    }
+  } catch (e) {}
+  return {};
 }
 
 function saveProgress(id, cur, dur) {
@@ -244,6 +420,10 @@ function updateURL(q, filter) {
   const params = new URLSearchParams();
   if (filter && filter !== "Tous") params.set("filter", filter);
   if (q) params.set("q", q);
+  if (typeof currentSort !== "undefined" && currentSort && currentSort !== "default") {
+    params.set("sort", currentSort);
+    params.set("dir", sortAsc ? "asc" : "desc");
+  }
   const qs = params.toString();
   history.replaceState(null, "", qs ? "?" + qs : location.pathname);
 }
@@ -254,17 +434,30 @@ function getFavoritesKey() {
   return hk === "sn_history" ? "sn_fav" : "sn_fav_" + hk.split("_").slice(2).join("_");
 }
 function getFavorites() {
-  try { return JSON.parse(Accounts.getCookie(getFavoritesKey()) || "[]"); } catch (e) { return []; }
+  try {
+    const raw = localStorage.getItem(stFavKey());
+    if (raw) return sanitizeFavorites(JSON.parse(raw));
+  } catch (e) {}
+  // migration depuis l'ancien cookie
+  try {
+    const c = Accounts.getCookie(getFavoritesKey());
+    if (c) {
+      const val = sanitizeFavorites(JSON.parse(c));
+      saveFavorites(val);
+      Accounts.delCookie(getFavoritesKey());
+      return val;
+    }
+  } catch (e) {}
+  return [];
 }
 function saveFavorites(arr) {
-  const d = new Date(); d.setTime(d.getTime() + 365 * 864e5);
-  document.cookie = getFavoritesKey() + "=" + encodeURIComponent(JSON.stringify(arr)) + "; expires=" + d.toUTCString() + "; path=/; SameSite=Lax";
+  try { localStorage.setItem(stFavKey(), JSON.stringify(sanitizeFavorites(arr))); } catch (e) {}
 }
 function isFavorite(id) { return getFavorites().includes(id); }
 function toggleFavorite(id) {
   const fav = getFavorites();
   const i = fav.indexOf(id);
-  if (i === -1) { fav.push(id); toast("Ajouté aux favoris"); }
+  if (i === -1) { fav.push(id); toast("Ajouté aux favoris", "ok"); }
   else { fav.splice(i, 1); toast("Retiré des favoris"); }
   saveFavorites(fav);
   return i === -1;
@@ -288,6 +481,7 @@ function getUnfinishedFilms() {
 
 /* ============ FILM DU JOUR (seed = date) ============ */
 function getDailyPick() {
+  if (!CATALOG.length) return null;
   const d = new Date();
   const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
   let h = seed;
@@ -296,7 +490,7 @@ function getDailyPick() {
 }
 
 /* ============ SURPRENDS-MOI ============ */
-function getRandomFilm() { return CATALOG[Math.floor(Math.random() * CATALOG.length)]; }
+function getRandomFilm() { return CATALOG.length ? CATALOG[Math.floor(Math.random() * CATALOG.length)] : null; }
 
 /* ============ STATISTIQUES ============ */
 function getStats() {
@@ -354,17 +548,147 @@ function advancedSearch(q, genre, yearMin, yearMax, ratingMin) {
   if (q) {
     const ql = q.toLowerCase();
     items = items.filter(i =>
-      i.title.toLowerCase().includes(ql) ||
-      i.director.toLowerCase().includes(ql) ||
-      i.cast.some(c => c.toLowerCase().includes(ql))
+      (i.title || "").toLowerCase().includes(ql) ||
+      (i.director || "").toLowerCase().includes(ql) ||
+      (i.cast || []).some(c => (c || "").toLowerCase().includes(ql))
     );
   }
-  if (genre && genre !== "Tous") items = items.filter(i => i.genres.includes(genre));
-  if (yearMin) items = items.filter(i => i.year >= Number(yearMin));
-  if (yearMax) items = items.filter(i => i.year <= Number(yearMax));
-  if (ratingMin) items = items.filter(i => i.rating >= Number(ratingMin));
+  if (genre && genre !== "Tous") items = items.filter(i => (i.genres || []).includes(genre));
+  if (yearMin) items = items.filter(i => Number(i.year) >= Number(yearMin));
+  if (yearMax) items = items.filter(i => Number(i.year) <= Number(yearMax));
+  if (ratingMin) items = items.filter(i => Number(i.rating) >= Number(ratingMin));
   return items;
 }
+
+/* ============ INTERFACE v2 ============ */
+
+/* Suggestions de recherche : liste cliquable sous la barre,
+   navigation clavier (↑/↓/Entrée/Échap). */
+function initSearchSuggestions() {
+  const box = document.querySelector(".search-box");
+  const input = document.getElementById("searchInput");
+  if (!box || !input) return;
+
+  const panel = document.createElement("div");
+  panel.className = "search-suggest";
+  box.appendChild(panel);
+
+  let items = [];
+  let highlight = -1;
+  let open = false;
+
+  function hide() { panel.classList.remove("show"); open = false; highlight = -1; }
+
+  function updateSel() {
+    panel.querySelectorAll(".ss-item").forEach((a, i) => a.classList.toggle("sel", i === highlight));
+    const el = panel.querySelector(".ss-item.sel");
+    if (el) el.scrollIntoView({ block: "nearest" });
+  }
+
+  function render() {
+    panel.innerHTML = items.map((it, idx) => `
+      <a class="ss-item ${idx === highlight ? "sel" : ""}" href="movie.html?id=${it.id}" title="${esc(it.title)}">
+        <img src="${poster(it)}" alt="" loading="lazy">
+        <div class="ss-info">
+          <span class="ss-title">${esc(it.title)}</span>
+          <span class="ss-sub">${it.year} · ⭐ ${it.rating.toFixed(1)} · ${esc((it.genres || [])[0] || "—")}</span>
+        </div>
+        <span class="ss-go">→</span>
+      </a>`).join("");
+    const links = [...panel.querySelectorAll(".ss-item")];
+    links.forEach((a, i) => a.addEventListener("mouseenter", () => { highlight = i; updateSel(); }));
+  }
+
+  input.addEventListener("input", () => {
+    const q = input.value.trim().toLowerCase();
+    if (!q) { hide(); return; }
+    items = CATALOG
+      .filter(i =>
+        (i.title || "").toLowerCase().includes(q) ||
+        (i.director || "").toLowerCase().includes(q) ||
+        (i.genres || []).some(g => g.toLowerCase().includes(q)) ||
+        (i.cast || []).some(c => c.toLowerCase().includes(q)))
+      .slice(0, 8);
+    highlight = -1;
+    if (!items.length) {
+      panel.innerHTML = '<div class="search-suggest-empty">Aucun résultat pour « ' + esc(q) + ' »</div>';
+      panel.classList.add("show"); open = true;
+      return;
+    }
+    render();
+    panel.classList.add("show"); open = true;
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (!open) return;
+    if (e.key === "Escape") { hide(); input.blur(); return; }
+    if (e.key === "ArrowDown") { e.preventDefault(); highlight = (highlight + 1) % items.length; updateSel(); return; }
+    if (e.key === "ArrowUp") { e.preventDefault(); highlight = (highlight - 1 + items.length) % items.length; updateSel(); return; }
+    if (e.key === "Enter") {
+      if (highlight >= 0 && items[highlight]) { e.preventDefault(); location.href = "movie.html?id=" + items[highlight].id; return; }
+      const q = input.value.trim();
+      if (q && !/(^|\/)index\.html/i.test(location.pathname)) { e.preventDefault(); location.href = "index.html?q=" + encodeURIComponent(q); }
+    }
+  });
+
+  document.addEventListener("click", (e) => { if (!e.target.closest(".search-box")) hide(); });
+}
+
+/* Bouton "retour en haut" (injecté, visible après 600px de scroll). */
+function initBackToTop() {
+  const btn = document.createElement("button");
+  btn.id = "backTop";
+  btn.setAttribute("aria-label", "Retour en haut");
+  btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>';
+  btn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+  document.body.appendChild(btn);
+  let timer = null;
+  const onScroll = () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => btn.classList.toggle("show", window.scrollY > 600), 80);
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+}
+
+/* Ombrage de la navbar au défilement. */
+function initScrollNavbar() {
+  const nav = document.querySelector(".navbar");
+  if (!nav) return;
+  let timer = null;
+  const onScroll = () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => nav.classList.toggle("scrolled", window.scrollY > 10), 60);
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+}
+
+/* Apparition douce des sections au défilement. */
+function initReveal() {
+  if (!("IntersectionObserver" in window)) return;
+  const els = [...document.querySelectorAll(".section, .legal-card, .page-head")];
+  els.forEach(el => { if (el.offsetParent !== null) el.classList.add("reveal"); });
+  if (!els.some(el => el.classList.contains("reveal"))) return;
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(en => {
+      if (en.isIntersecting) { en.target.classList.add("reveal-in"); io.unobserve(en.target); }
+    });
+  }, { threshold: 0.06, rootMargin: "0px 0px -8% 0px" });
+  els.forEach(el => { if (el.classList.contains("reveal")) io.observe(el); });
+}
+
+initSearchSuggestions();
+initBackToTop();
+initScrollNavbar();
+initReveal();
+
+/* PWA : enregistre le service worker (hors protocoles exotiques). */
+(function () {
+  if (!("serviceWorker" in navigator)) return;
+  if (!/^https?:$/.test(location.protocol)) return;
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+})();
 
 /* global event delegation : une carte -> page détail, un favori -> toggle */
 document.addEventListener("click", (e) => {
@@ -374,7 +698,8 @@ document.addEventListener("click", (e) => {
     const id = Number(favBtn.dataset.fav);
     const added = toggleFavorite(id);
     favBtn.classList.toggle("active", added);
-    favBtn.querySelector("svg").setAttribute("fill", added ? "currentColor" : "none");
+    const svg = favBtn.querySelector("svg");
+    if (svg) svg.setAttribute("fill", added ? "currentColor" : "none");
     favBtn.title = added ? "Retirer des favoris" : "Ajouter à Ma Liste";
     return;
   }

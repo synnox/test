@@ -20,6 +20,7 @@
   const vol = document.getElementById("pVol");
   const rate = document.getElementById("pRate");
   const btnFull = document.getElementById("pFull");
+  const btnPip = document.getElementById("pPip");
 
   let hideTimer = null;
   let seeking = false;
@@ -136,6 +137,29 @@
     }
   });
 
+  /* --- image dans l'image --- */
+  if (btnPip) {
+    const setPipIco = () => {
+      const on = !!(document.pictureInPictureElement && document.pictureInPictureElement === video);
+      btnPip.classList.toggle("p-on", on);
+      btnPip.setAttribute("aria-label", on ? "Quitter l'image dans l'image" : "Image dans l'image");
+      btnPip.innerHTML = on
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="11" y="12" width="7" height="4" rx="1" fill="#fff"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="10" y="11" width="8" height="5" rx="1"/></svg>';
+    };
+    btnPip.addEventListener("click", () => {
+      if (!video.requestPictureInPicture) { toast("PiP non pris en charge par ton navigateur.", "err"); return; }
+      if (document.pictureInPictureElement === video) {
+        document.exitPictureInPicture().catch(() => {});
+      } else {
+        video.requestPictureInPicture().catch(() => {});
+      }
+    });
+    video.addEventListener("enterpictureinpicture", setPipIco);
+    video.addEventListener("leavepictureinpicture", setPipIco);
+    setPipIco();
+  }
+
   /* --- auto masquage --- */
   shell.addEventListener("mousemove", resetHide, { passive: true });
   shell.addEventListener("touchstart", resetHide, { passive: true });
@@ -150,8 +174,21 @@
       case "Space": e.preventDefault(); toggle(); break;
       case "ArrowLeft": e.preventDefault(); video.currentTime = Math.max(0, video.currentTime - 10); break;
       case "ArrowRight": e.preventDefault(); video.currentTime = Math.min(video.duration || 1e9, video.currentTime + 10); break;
+      case "ArrowUp": e.preventDefault(); video.volume = Math.min(1, (video.volume || 0) + 0.1); vol.value = video.volume * 100; video.muted = false; iconVol(); break;
+      case "ArrowDown": e.preventDefault(); video.volume = Math.max(0, (video.volume || 0) - 0.1); vol.value = video.volume * 100; if (video.volume === 0) video.muted = true; iconVol(); break;
       case "KeyM": video.muted = !video.muted; iconVol(); break;
       case "KeyF": btnFull.click(); break;
+      case "KeyP": if (btnPip) btnPip.click(); break;
+      case "Comma":
+      case "Period": {
+        if (!rate.options.length) break;
+        const delta = e.code === "Period" ? 1 : -1;
+        const idx = Math.max(0, Math.min(rate.options.length - 1, rate.selectedIndex + delta));
+        rate.value = rate.options[idx].value;
+        rate.dispatchEvent(new Event("change"));
+        toast(video.playbackRate + "×");
+        break;
+      }
     }
   });
 })();
